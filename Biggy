@@ -373,25 +373,25 @@ class  Biggy  {
         if( b == Biggy( 1 ) )   return  *this = a;
         i64  d = a.size() - b.size() + 1;
         Biggy  inv( basebase / b.v.back() );
-        Biggy  pre = Biggy( 0 );
+        Biggy  pre = Biggy( 0 ),  res( 0 );
         i64  cur = 2,  bcur = 1;
 
         while( inv != pre  ||  bcur < (i64)b.size() )  {
-            bcur = min( bcur<<1, (i64)b.size() );
-            Biggy c;  c.v = vector<i64>( b.v.end() - bcur, b.v.end() );
-            pre = inv;
-            inv *= ( ( Biggy( 2 )<<(cur + bcur - 1  ) ) - inv*c );
-            cur = min( cur<<1, d );
-            inv.v = vector<i64>( inv.v.end() - cur, inv.v.end() );
+            bcur  = min( bcur << 1, (i64)b.size() );
+            res.v = { b.v.end() - bcur, b.v.end() };
+            pre   = inv;
+            inv  *= ( ( Biggy( 2 ) << ( cur + bcur - 1  ) ) - inv*res );
+            cur   = min( cur << 1, d );
+            inv.v = { inv.v.end() - cur, inv.v.end() };
         }
 
-        inv.v = vector<i64>( inv.v.end() - d, inv.v.end() );
-        Biggy  res = a*inv;
+        inv.v = { inv.v.end() - d, inv.v.end() };
+        res   = a * inv;
         res >>= ( a.size() );
-        Biggy  mul = res*b;
+        Biggy  mul = res * b;
         while( mul + b <= a )  { res += Biggy( 1 );  mul += b; }
         v = res.v;
-        return *this;
+        return  *this;
     }
 
     Biggy  operator % ( const Biggy& x ) const { return  (*this) - x*( (*this)/x ); }
