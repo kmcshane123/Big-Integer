@@ -277,19 +277,22 @@ using namespace garnerBiggy;
 
 class  Biggy  {
   public:
-    inline static constexpr u64  base_dig = 6;
+    inline static constexpr int  base_dig = 6;
     inline static constexpr u64  base     = 1000000;
     inline static constexpr u64  basebase = 1LL*base*base;
 
     int          sgn = 1;
-    vector<i64>  v{};
+    vector<u64>  v{};
 
   public:
     // CONSTRUCTORS
     Biggy(){}
     Biggy( i64 val )  {
-        if( val < 0 )  { sgn = -1;  val = -val; }
-        for( ; val>0 ; val/=base )   v.emplace_back( val %base );
+        u64  x;
+        if( val < 0 ) { sgn = -1;  x = -val; }
+        else  x = val;
+
+        for( ; x>0 ; x/=base )   v.emplace_back( x %base );
     }
     Biggy( string s )  { read( s ); }
 
@@ -297,7 +300,7 @@ class  Biggy  {
     friend ostream &operator << ( ostream &stream, const Biggy &val )  {
         if( val.sgn == -1 )   stream << '-';
         stream << ( val.v.size() ? val.v.back() : 0 );
-        for( i64 i=(i64)val.v.size() - 2; i >= 0 ; --i )
+        for( int i=(int)val.v.size() - 2; i >= 0 ; --i )
             stream << setw( base_dig ) << setfill( '0' ) << val.v[i];
         return  stream;
     }
@@ -310,8 +313,8 @@ class  Biggy  {
     bool  operator < ( const Biggy &b ) const  {
         if( sgn != b.sgn )   return  sgn < b.sgn;
         if( size() != b.size() )
-            return  size() * sgn < b.size() * b.sgn;
-        for( int i=size() - 1 ; i>=0 ; --i )
+            return  (int)size() * sgn < (int)b.size() * b.sgn;
+        for( int i=(int)size() - 1 ; i>=0 ; --i )
             if( v[i] != b[i] )
                 return  v[i] * sgn < b[i] * sgn;
         return  false;
@@ -331,12 +334,12 @@ class  Biggy  {
 
     Biggy operator + ( const Biggy &val ) const  {
         if( sgn != val.sgn )   return  *this - (-val);
-        i64  carry = 0;  Biggy  res = val;
-        for( size_t i=0 ; i<max( size(),val.size() ) || carry ; ++i )  {
+        u64  carry = 0;  Biggy  res = val;
+        for( size_t i=0 ; i<max( size(), val.size() ) || carry ; ++i )  {
             if( i == res.size() )   res.v.emplace_back( 0 );
             res.v[i] += carry + ( i<size() ? v[i] : 0 );
-            carry = res.v[i] >= (int64_t)base;
-            if( carry )  res.v[i] -= base;
+            carry = res.v[i] >= base;
+            if( carry )   res.v[i] -= base;
         }
         return res;
     }
@@ -345,10 +348,14 @@ class  Biggy  {
         if( sgn != b.sgn )      return  *this + ( -b );
         if( abs() < b.abs() )   return  -( b - *this );
         Biggy  res = *this;
-        for( int i=0, carry=0 ; i<(int)b.size() || carry ; ++i )  {
-            res[i] -= carry + ( i < (int)b.size() ? b[i] : 0 );
-            carry = res[i] < 0;
-            if( carry )   res[i] += base;
+        int    carry = 0;
+
+        for( int i=0 ; i<(int)b.size() || carry ; ++i )  {
+            i64  x = res[i];
+            x -= carry + ( i < (int)b.size() ? b[i] : 0 );
+            carry = x < 0;
+            if( carry )   res[i] = base + x;
+            else          res[i] = x;
         }
         res.trim();
         return  res;
@@ -366,11 +373,11 @@ class  Biggy  {
 
         auto  ans = combineMods( c1, c2, c3 );
 
-        vector<i64> res;
+        vector<u64>  res;
 
-        i64  carry = 0;
+        u64  carry = 0;
         for( size_t i=0 ; i<ans.size() ; ++i  )  {
-            i64  cur = ans[i] + carry;
+            u64  cur = ans[i] + carry;
             res.push_back( cur % base );
             carry = cur/base;
         }
@@ -458,8 +465,8 @@ class  Biggy  {
     Biggy operator * ( i64 val )  { Biggy  res = *this;  return  res *= val; }
 
   private:
-    i64 &operator [] ( int x )              { return( v[x] ); }
-    const i64 &operator [] ( int x )  const { return( v[x] ); }
+    u64 &operator [] ( int x )              { return( v[x] ); }
+    const u64 &operator [] ( int x )  const { return( v[x] ); }
     bool  isZero() const { return  v.empty() || ( size() == 1  &&  !v[0] ); }
     size_t  size() const { return v.size(); }
     void  trim()  {
@@ -469,13 +476,13 @@ class  Biggy  {
 
     Biggy& operator <<= ( const int& x )  {
         if( !isZero() )  {
-            vector<i64>  add( x, 0 );
+            vector<u64>  add( x, 0 );
             v.insert( v.begin(), add.begin(), add.end() );
         }
         return *this;
     }
     Biggy& operator >>= ( const int& x )  {
-        v = vector<i64>( v.begin() + min( x, (int)v.size() ), v.end() );
+        v = vector<u64>( v.begin() + min( x, (int)v.size() ), v.end() );
         return  *this;
     }
     Biggy operator << ( const int& x )  const{ return  Biggy( *this ) <<= x; }
@@ -483,15 +490,16 @@ class  Biggy  {
 
     void  read( const string &s )  {
         v.clear();
-        i64  pos = 0;
-        while( pos<(i64)s.size()  && ( s[pos] == '-' || s[pos] == '+' ) )  {
+        int  pos = 0;
+        sgn = 1;
+        while( pos < (int)s.size()  &&  ( s[pos] == '-' || s[pos] == '+' ) )  {
             if( s[pos] == '-' )   sgn = -sgn;
             ++pos;
         }
-        for( i64 i=s.size()-1 ; i>=pos ; i-=base_dig )  {
-            i64  x = 0;
-            for( i64 j=max( (int64_t)pos, i - (int64_t)base_dig + 1 ) ; j<=i ; ++j )
-                x=x*10 + s[j] - '0';
+        for( int i=(int)s.size()-1 ; i>=pos ; i-=base_dig )  {
+            u64  x = 0;
+            for( int j=max( pos, i - base_dig + 1 ) ; j<=i ; ++j )
+                x = x*10 + s[j] - '0';
             v.emplace_back( x );
         }
         trim();
@@ -500,7 +508,7 @@ class  Biggy  {
         ostringstream  s;
         if( sgn == -1 )    s << '-';
         s << ( v.empty() ? 0 : v.back() );
-        for( int i=size()-2 ; i>=0 ; --i )
+        for( int i=(int)size()-2 ; i>=0 ; --i )
             s << setw( base_dig ) << setfill( '0' ) << v[i];
         return  s.str();
     }
@@ -524,10 +532,10 @@ int main()  {
         Biggy  a, b;
         cin >> a >> b;
 
-//        auto [u, v] = divMod( a, b );
-//        cout << u << " " << v << '\n';
+        auto [u, v] = divMod( a, b );
+        cout << u << " " << v << '\n';
 
-        cout << a * b << '\n';
+//        cout << a * b << '\n';
 //        cout << a + b << '\n';
     }
 
