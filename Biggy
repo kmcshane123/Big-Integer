@@ -215,12 +215,11 @@ namespace  garnerBiggy
   using  u32 = uint32_t;
   using  u64 = uint64_t;
 
-  i64  powm( u64 a, u64 i, u64 m )  {
+  u64  powm( u64 a, u64 i, u64 m )  {
       u64  r = a,  res = 1;
       while( i )  {
           if( i & 1 )   res = res * r % m;
-          r = (i64)r * r % m;
-          i >>= 1;
+          r = r * r % m;   i >>= 1;
       }
       return  res;
   }
@@ -245,17 +244,17 @@ namespace  garnerBiggy
         for( size_t j=0 ; j<nmods ; ++j )  {
             for( size_t k=0 ; k<nmods ; ++k )   table_coeff[j+1][k] = table_coeff[j][k];
             for( size_t k=j+1 ; k<nmods ; ++k )
-                table_coeff[j+1][k] = (i64)table_coeff[j+1][k] * mods[j] % mods[k];
+                table_coeff[j+1][k] = (u64)table_coeff[j+1][k] * mods[j] % mods[k];
         }
         table_coeffinv.resize( nmods );
         for( size_t i=0 ; i<nmods ; ++i )
             table_coeffinv[i] = invm( table_coeff[i][i], mods[i] );
     }
 
-    i64  garner( const vector<u32> &x )  {
+    u64  garner( const vector<u32> &x )  {
         size_t  nmods = mods.size();
         vector<u32>  table_const( nmods );
-        i64  res = 0,  res_coeff = 1;
+        u64  res = 0,  res_coeff = 1;
         for( size_t j=0 ; j<nmods ; ++j )  {
             u32  t = (u64)( x[j] + mods[j] - table_const[j] ) * table_coeffinv[j] % mods[j];
             for( size_t k=j+1 ; k<nmods ; ++k )
@@ -266,12 +265,11 @@ namespace  garnerBiggy
         return  res;
     }
 
-    vector<u64>  combineMods( const vector<Mint<M1>> &a, const vector<Mint<M2>> &b, const vector<Mint<M3>> &c )
-    {
+    vector<u64>  combineMods( const vector<Mint<M1>> &a, const vector<Mint<M2>> &b,
+                              const vector<Mint<M3>> &c )  {
         vector<u64>  res( a.size() );
-	    for( size_t i=0 ; i<a.size() ; ++i )  {
+	    for( size_t i=0 ; i<a.size() ; ++i )
             res[i] = garner( { a[i].get(), b[i].get(), c[i].get() } );
-	    }
         return  res;
     }
 };
@@ -279,9 +277,9 @@ using namespace garnerBiggy;
 
 class  Biggy  {
   public:
-    inline static constexpr i64  base_dig = 6;
-    inline static constexpr i64  base     = 1000000;
-    inline static constexpr i64  basebase = 1LL*base*base;
+    inline static constexpr u64  base_dig = 6;
+    inline static constexpr u64  base     = 1000000;
+    inline static constexpr u64  basebase = 1LL*base*base;
 
     int          sgn = 1;
     vector<i64>  v{};
@@ -290,7 +288,7 @@ class  Biggy  {
     // CONSTRUCTORS
     Biggy(){}
     Biggy( i64 val )  {
-        if( val < 0 )  { sgn = -1;  val *= -1; }
+        if( val < 0 )  { sgn = -1;  val = -val; }
         for( ; val>0 ; val/=base )   v.emplace_back( val %base );
     }
     Biggy( string s )  { read( s ); }
@@ -337,7 +335,7 @@ class  Biggy  {
         for( size_t i=0 ; i<max( size(),val.size() ) || carry ; ++i )  {
             if( i == res.size() )   res.v.emplace_back( 0 );
             res.v[i] += carry + ( i<size() ? v[i] : 0 );
-            carry = res.v[i] >= base;
+            carry = res.v[i] >= (int64_t)base;
             if( carry )  res.v[i] -= base;
         }
         return res;
@@ -426,26 +424,30 @@ class  Biggy  {
     Biggy operator   / ( const Biggy& x ) const { Biggy b(*this);  return b /= x; }
 
    // ARITMETIC OPERATORS WITH INTS
-   Biggy  operator *= ( i64 val )  {
-        Biggy  res = *this;  i64 carry = 0;
-        for( size_t i=0 ; i<res.v.size()  || carry ; ++i )  {
-            if( i == res.v.size() )  res.v.emplace_back( 0 );
-            i64  cur = res.v[i]*val + carry;
+   Biggy  &operator *= ( int64_t val )  {
+        if( val < 0 )    sgn = -sgn,  val = -val;
+        u64  m = val,  carry = 0;
+        for( size_t i=0 ; i<v.size()  ||  carry ; ++i )  {
+            if( i == v.size() )  v.emplace_back( 0 );
+            u64  cur = v[i]*m + carry;
             carry = cur/base;
-            res.v[i] = cur %base;
+            v[i]  = cur %base;
         }
         trim();
-        return res;
+        if( isZero() )  sgn = 1;
+        return  *this;
     }
 
-    Biggy  &operator /= ( i64 b )  {
-        if( b < 0 )    sgn = -sgn,  b = -b;
+    Biggy  &operator /= ( int64_t b )  {
+        if( b < 0 )   sgn = -sgn,  b = -b;
+        u64  d = b;
         for( int i=size() - 1, rem = 0 ; i>=0 ; --i )  {
-            i64  cur = v[i] + rem * (i64)base;
-            v[i]     = (int) ( cur / b );
-            rem      = (int) ( cur % b );
+            u64  cur = v[i] + rem * (u64)base;
+            v[i] = cur / d;
+            rem  = cur % d;
         }
         trim();
+        if( isZero() )  sgn = 1;
         return  *this;
     }
 
@@ -455,8 +457,8 @@ class  Biggy  {
         return  m;
     }
 
-    Biggy operator /  ( i64 val )  { Biggy  res = *this;  return  res /= val; }
-    Biggy operator *  ( i64 val )  { Biggy  res = *this;  return  res *= val; }
+    Biggy operator / ( i64 val )  { Biggy  res = *this;  return  res /= val; }
+    Biggy operator * ( i64 val )  { Biggy  res = *this;  return  res *= val; }
 
   private:
     i64 &operator [] ( int x )              { return( v[x] ); }
@@ -491,7 +493,7 @@ class  Biggy  {
         }
         for( i64 i=s.size()-1 ; i>=pos ; i-=base_dig )  {
             i64  x = 0;
-            for( i64 j=max( pos, i - base_dig + 1 ) ; j<=i ; ++j )
+            for( i64 j=max( (int64_t)pos, i - (int64_t)base_dig + 1 ) ; j<=i ; ++j )
                 x=x*10 + s[j] - '0';
             v.emplace_back( x );
         }
