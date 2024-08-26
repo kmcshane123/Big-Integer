@@ -378,7 +378,6 @@ class  Biggy  {
 
         Biggy  A;  A.v = res;  A.sgn = sgn * b.sgn;
         A.trim();
-        if( A.isZero() )   A.sgn = 1;
         return  A;
     }
 
@@ -434,7 +433,6 @@ class  Biggy  {
             v[i]  = cur %base;
         }
         trim();
-        if( isZero() )  sgn = 1;
         return  *this;
     }
 
@@ -447,7 +445,6 @@ class  Biggy  {
             rem  = cur % d;
         }
         trim();
-        if( isZero() )  sgn = 1;
         return  *this;
     }
 
@@ -527,11 +524,11 @@ int main()  {
         Biggy  a, b;
         cin >> a >> b;
 
-        auto [u, v] = divMod( a, b );
-        cout << u << " " << v << '\n';
+//        auto [u, v] = divMod( a, b );
+//        cout << u << " " << v << '\n';
 
-    //    cout << a * b << '\n';
-    //    cout << a + b << '\n';
+        cout << a * b << '\n';
+//        cout << a + b << '\n';
     }
 
     return  0;
