@@ -532,11 +532,11 @@ int main()  {
         Biggy  a, b;
         cin >> a >> b;
 
-        auto [u, v] = divMod( a, b );
-        cout << u << " " << v << '\n';
+//        auto [u, v] = divMod( a, b );
+//        cout << u << " " << v << '\n';
 
 //        cout << a * b << '\n';
-//        cout << a + b << '\n';
+        cout << a + b << '\n';
     }
 
     return  0;
