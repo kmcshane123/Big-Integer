@@ -113,7 +113,8 @@ class FormalPowerSeries
     constexpr FPS  operator + ( const FPS &a ) const { return  FPS(*this) += a; }
     constexpr FPS  operator * ( const i64 a )  const { return  FPS(*this) *= a; }
     constexpr FPS  operator * ( const FPS &a ) const { return  FPS(*this) *= a; }
-
+    constexpr FPS  operator / ( const FPS &a ) const { return  FPS(*this) /= a; }
+    constexpr FPS  operator % ( const FPS &a ) const { return  FPS(*this) %= a; }
     FPS  &operator += ( const FPS &r )  {
         this->resize( max( this->size(), r.size() ) );
         for( size_t i=0 ; i<r.size() ; ++i )  this->a[i] += r.a[i];
@@ -211,55 +212,69 @@ class FormalPowerSeries
 
 namespace  garnerBiggy
 {
-  i64  powm( i64 a, i64 i, i64 m )  {
-      i64  r = a,  res = 1;
+  using  u32 = uint32_t;
+  using  u64 = uint64_t;
+
+  i64  powm( u64 a, u64 i, u64 m )  {
+      u64  r = a,  res = 1;
       while( i )  {
-          if( i & 1 )   res = (i64)res * r % m;
+          if( i & 1 )   res = res * r % m;
           r = (i64)r * r % m;
           i >>= 1;
       }
       return  res;
   }
 
-  i64  invm( i64 a, i64 m )  { return  powm( a, m - 2, m ); }
+  u32  invm( u32 a, u32 m )  {	return  powm( a, m - 2, m ); }
 
-  static constexpr i64  M1 = 998244353,  M2 = 897581057;
-  static constexpr array<i64, 2>  mods{ M1, M2 };
-
-  vector<vector<i64>>  table_coeff;
-  vector<i64>          table_coeffinv;
+  static constexpr u32  M1 = 962592769, M2 = 975175681, M3 = 976224257, M4 = 985661441, M5 = 998244353;
+  static constexpr array<u32, 3>  mods{ M1, M2, M3 };
 
   using  FPS1 = FormalPowerSeries< Mint<M1> >;
   using  FPS2 = FormalPowerSeries< Mint<M2> >;
+  using  FPS3 = FormalPowerSeries< Mint<M3> >;
+  using  FPS4 = FormalPowerSeries< Mint<M4> >;
+  using  FPS5 = FormalPowerSeries< Mint<M5> >;
 
-  void setUpGarner()  {
-      size_t  nmods = mods.size();
-      table_coeff.assign( nmods + 1, vector<i64>( nmods, 1 ) );
-      for( size_t j=0 ; j<nmods ; ++j )  {
-          for( size_t k=0 ; k<nmods ; ++k )   table_coeff[j+1][k] = table_coeff[j][k];
-          for( size_t k=j+1 ; k<nmods ; ++k )
-              table_coeff[j+1][k] = (i64)table_coeff[j+1][k] * mods[j] % mods[k];
-      }
-      table_coeffinv.resize( nmods );
-      for( size_t i=0 ; i<nmods ; ++i )
-          table_coeffinv[i] = invm( table_coeff[i][i], mods[i] );
-  }
+  vector<vector<u32>>  table_coeff;
+  vector<u32>          table_coeffinv;
 
-  i64  garner( const vector<i64> &x )  {
-      size_t  nmods = mods.size();
-      vector<i64>  table_const( nmods );
-      i64  res = 0,  res_coeff = 1;
-      for( size_t j=0 ; j<nmods ; ++j )  {
-          i64  t = (i64)( x[j] + mods[j] - table_const[j] ) * table_coeffinv[j] % mods[j];
-          for( size_t k=j+1 ; k<nmods ; ++k )
-              table_const[k] = ( table_const[k] + (i64)table_coeff[j][k] * t ) % mods[k];
-          res += res_coeff * i64( t );
-          res_coeff *= mods[j];
-      }
-      return  res;
-  }
+    void setUpGarner()  {
+        size_t  nmods = mods.size();
+        table_coeff.assign( nmods + 1, vector<u32>( nmods, 1 ) );
+        for( size_t j=0 ; j<nmods ; ++j )  {
+            for( size_t k=0 ; k<nmods ; ++k )   table_coeff[j+1][k] = table_coeff[j][k];
+            for( size_t k=j+1 ; k<nmods ; ++k )
+                table_coeff[j+1][k] = (i64)table_coeff[j+1][k] * mods[j] % mods[k];
+        }
+        table_coeffinv.resize( nmods );
+        for( size_t i=0 ; i<nmods ; ++i )
+            table_coeffinv[i] = invm( table_coeff[i][i], mods[i] );
+    }
+
+    i64  garner( const vector<u32> &x )  {
+        size_t  nmods = mods.size();
+        vector<u32>  table_const( nmods );
+        i64  res = 0,  res_coeff = 1;
+        for( size_t j=0 ; j<nmods ; ++j )  {
+            u32  t = (u64)( x[j] + mods[j] - table_const[j] ) * table_coeffinv[j] % mods[j];
+            for( size_t k=j+1 ; k<nmods ; ++k )
+                table_const[k] = ( table_const[k] + (u64)table_coeff[j][k] * t ) % mods[k];
+            res += res_coeff * u64( t );
+            res_coeff *= mods[j];
+        }
+        return  res;
+    }
+
+    vector<u64>  combineMods( const vector<Mint<M1>> &a, const vector<Mint<M2>> &b, const vector<Mint<M3>> &c )
+    {
+        vector<u64>  res( a.size() );
+	    for( size_t i=0 ; i<a.size() ; ++i )  {
+            res[i] = garner( { a[i].get(), b[i].get(), c[i].get() } );
+	    }
+        return  res;
+    }
 };
-
 using namespace garnerBiggy;
 
 class  Biggy  {
@@ -341,29 +356,32 @@ class  Biggy  {
         return  res;
     }
 
-    Biggy operator * ( const Biggy &val ) const  {
-        if( !size() || !val.size() )   return Biggy( 0 );
+    Biggy operator * ( const Biggy &b ) const  {
+        if( !size() || !b.size() )   return Biggy( 0 );
 
         auto  c1 = ( FPS1( { v.begin(), v.end() } ) *
-                     FPS1( { val.v.begin(), val.v.end() } ) ).a;
+                     FPS1( { b.v.begin(), b.v.end() } ) ).a;
         auto  c2 = ( FPS2( { v.begin(), v.end() } ) *
-                     FPS2( { val.v.begin(), val.v.end() } ) ).a;
+                     FPS2( { b.v.begin(), b.v.end() } ) ).a;
+        auto  c3 = ( FPS3( { v.begin(), v.end() } ) *
+                     FPS3( { b.v.begin(), b.v.end() } ) ).a;
 
-        Biggy  r;
-        r.v.reserve( c1.size() );
-        r.sgn = sgn * val.sgn;
+        auto  ans = combineMods( c1, c2, c3 );
+
+        vector<i64> res;
+
         i64  carry = 0;
-        for( size_t i=0 ; i<c1.size() ; ++i  )  {
-            i64  cur = garner( { c1[i].get(), c2[i].get() } ) + carry;
-            r.v.push_back( cur % base );
+        for( size_t i=0 ; i<ans.size() ; ++i  )  {
+            i64  cur = ans[i] + carry;
+            res.push_back( cur % base );
             carry = cur/base;
-            if( i+1 == c1.size() && carry )  {
-                c1.push_back( 0 );
-                c2.push_back( 0 );
-            }
         }
-        r.trim();
-        return  r;
+        if( carry )  res.push_back( carry );
+
+        Biggy  A;  A.v = res;  A.sgn = sgn * b.sgn;
+        A.trim();
+        if( A.isZero() )   A.sgn = 1;
+        return  A;
     }
 
     Biggy &operator /= ( const Biggy& x )  {
@@ -502,6 +520,7 @@ int main()  {
 
     int  q;
     cin >> q;
+
     while( q-- )  {
         Biggy  a, b;
         cin >> a >> b;
@@ -509,9 +528,9 @@ int main()  {
         auto [u, v] = divMod( a, b );
         cout << u << " " << v << '\n';
 
-//        cout << a * b << '\n';
-
-//        cout << a + b << '\n';
+    //    cout << a * b << '\n';
+    //    cout << a + b << '\n';
     }
+
     return  0;
 }
