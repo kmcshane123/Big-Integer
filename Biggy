@@ -393,13 +393,13 @@ class  Biggy  {
         sgn = sgn * x.sgn;
         if( a < b )             return  *this = Biggy();
         if( b == Biggy( 1 ) )   return  *this = a;
-        i64  d = a.size() - b.size() + 1;
-        Biggy  inv( basebase / b.v.back() );
-        Biggy  pre = Biggy( 0 ),  res( 0 );
-        i64  cur = 2,  bcur = 1;
+        Biggy   inv( basebase / b.v.back() );
+        Biggy   pre = Biggy( 0 ),  res( 0 );
+        size_t  d   = 1 + a.size() - b.size();
+        size_t  cur = 2,  bcur = 1;
 
-        while( inv != pre  ||  bcur < (i64)b.size() )  {
-            bcur  = min( bcur << 1, (i64)b.size() );
+        while( inv != pre  ||  bcur < b.size() )  {
+            bcur  = min( bcur << 1, b.size() );
             res.v = { b.v.end() - bcur, b.v.end() };
             pre   = inv;
             inv  *= ( ( Biggy( 2 ) << ( cur + bcur - 1  ) ) - inv*res );
@@ -532,11 +532,11 @@ int main()  {
         Biggy  a, b;
         cin >> a >> b;
 
-//        auto [u, v] = divMod( a, b );
-//        cout << u << " " << v << '\n';
+        auto [u, v] = divMod( a, b );
+        cout << u << " " << v << '\n';
 
 //        cout << a * b << '\n';
-        cout << a + b << '\n';
+//        cout << a + b << '\n';
     }
 
     return  0;
