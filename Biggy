@@ -322,16 +322,16 @@ class  Biggy  {
     bool  operator <= ( const Biggy &b ) const  { return  !( b < *this ); }
     bool  operator >= ( const Biggy &b ) const  { return  !( *this < b ); }
     bool  operator == ( const Biggy &b ) const  {
-        return  !( *this < b )  &&  !( b < *this ); }
+                        return  !( *this < b )  &&  !( b < *this ); }
     bool  operator != ( const Biggy &b ) const  { return *this < b || b < *this; }
 
     // ARITHMETIC OPERATORS WITH BIGGY
-    Biggy abs() const  { Biggy res = *this;  res.sgn = 1;  return res; }
-    Biggy operator - () const { Biggy res=*this; res.sgn=-sgn; return res; }
+    Biggy  abs() const  { Biggy res = *this;  res.sgn = 1;  return res; }
+    Biggy  operator - () const { Biggy res=*this; res.sgn=-sgn; return res; }
     inline Biggy  &operator ++ () { return *this += 1; }
     inline Biggy  &operator -- () { return *this -= 1; }
 
-    Biggy operator + ( const Biggy &val ) const  {
+    Biggy  operator + ( const Biggy &val ) const  {
         if( sgn != val.sgn )   return  *this - (-val);
         u64  carry = 0;  Biggy  res = val;
         for( size_t i=0 ; i<max( size(), val.size() ) || carry ; ++i )  {
@@ -340,6 +340,7 @@ class  Biggy  {
             carry = res[i] >= base;
             if( carry )   res[i] -= base;
         }
+        res.trim();
         return res;
     }
 
@@ -360,7 +361,7 @@ class  Biggy  {
         return  res;
     }
 
-    Biggy operator * ( const Biggy &b ) const  {
+    Biggy  operator * ( const Biggy &b ) const  {
         if( !size() || !b.size() )   return Biggy( 0 );
 
         auto  c1 = ( FPS1( { v.begin(), v.end() } ) *
@@ -387,7 +388,7 @@ class  Biggy  {
         return  A;
     }
 
-    Biggy &operator /= ( const Biggy& x )  {
+    Biggy  &operator /= ( const Biggy& x )  {
         Biggy  a = abs(),  b = x.abs();
         sgn = ( sgn != x.sgn ) ? -1 : 1;
         if( a < b )             return  *this = Biggy();
@@ -422,11 +423,11 @@ class  Biggy  {
         return  make_pair( Q, x - Q*y );
     }
 
-    Biggy &operator += ( const Biggy &b )  { *this = *this + b;  return *this; }
-    Biggy &operator -= ( const Biggy &b )  { *this = *this - b;  return *this; }
-    Biggy &operator *= ( const Biggy &b )  { *this = *this * b;  return *this; }
-    Biggy &operator %= ( const Biggy &b )  { *this = (*this)%b;  return *this; }
-    Biggy operator   / ( const Biggy& x ) const { Biggy b(*this);  return b /= x; }
+    Biggy  &operator += ( const Biggy &b )  { *this = *this + b;  return *this; }
+    Biggy  &operator -= ( const Biggy &b )  { *this = *this - b;  return *this; }
+    Biggy  &operator *= ( const Biggy &b )  { *this = *this * b;  return *this; }
+    Biggy  &operator %= ( const Biggy &b )  { *this = (*this)%b;  return *this; }
+    Biggy   operator  / ( const Biggy& x ) const { Biggy b(*this);  return b /= x; }
 
    // ARITMETIC OPERATORS WITH INTS
    Biggy  &operator *= ( int64_t val )  {
@@ -446,7 +447,7 @@ class  Biggy  {
         if( b < 0 )   sgn = -sgn,  b = -b;
         u64  d = b;
         for( int i=size() - 1, rem = 0 ; i>=0 ; --i )  {
-            u64  cur = v[i] + rem * (u64)base;
+            u64  cur = v[i] + rem * base;
             v[i] = cur / d;
             rem  = cur % d;
         }
@@ -460,12 +461,12 @@ class  Biggy  {
         return  m;
     }
 
-    Biggy operator / ( i64 val )  { Biggy  res = *this;  return  res /= val; }
-    Biggy operator * ( i64 val )  { Biggy  res = *this;  return  res *= val; }
+    Biggy  operator / ( i64 val )  { Biggy  res = *this;  return  res /= val; }
+    Biggy  operator * ( i64 val )  { Biggy  res = *this;  return  res *= val; }
 
   private:
-    u64 &operator [] ( int x )              { return( v[x] ); }
-    const u64 &operator [] ( int x )  const { return( v[x] ); }
+    u64  &operator [] ( int x )              { return( v[x] ); }
+    const u64  &operator [] ( int x )  const { return( v[x] ); }
     bool  isZero() const { return  v.empty() || ( size() == 1  &&  !v[0] ); }
     size_t  size() const { return v.size(); }
     void  trim()  {
@@ -484,8 +485,8 @@ class  Biggy  {
         v = vector<u64>( v.begin() + min( x, (int)v.size() ), v.end() );
         return  *this;
     }
-    Biggy operator << ( const int& x )  const{ return  Biggy( *this ) <<= x; }
-    Biggy operator >> ( const int& x )  const{ return  Biggy( *this ) >>= x; }
+    Biggy  operator << ( const int& x )  const{ return  Biggy( *this ) <<= x; }
+    Biggy  operator >> ( const int& x )  const{ return  Biggy( *this ) >>= x; }
 
     void  read( const string &s )  {
         v.clear();
@@ -531,11 +532,11 @@ int main()  {
         Biggy  a, b;
         cin >> a >> b;
 
-        auto [u, v] = divMod( a, b );
-        cout << u << " " << v << '\n';
+//        auto [u, v] = divMod( a, b );
+//        cout << u << " " << v << '\n';
 
 //        cout << a * b << '\n';
-//        cout << a + b << '\n';
+        cout << a + b << '\n';
     }
 
     return  0;
