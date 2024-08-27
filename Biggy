@@ -273,7 +273,7 @@ namespace  garnerBiggy
         return  res;
     }
 };
-using namespace garnerBiggy;
+using namespace  garnerBiggy;
 
 class  Biggy  {
   public:
@@ -291,7 +291,6 @@ class  Biggy  {
         u64  x;
         if( val < 0 ) { sgn = -1;  x = -val; }
         else  x = val;
-
         for( ; x>0 ; x/=base )   v.emplace_back( x %base );
     }
     Biggy( string s )  { read( s ); }
@@ -337,9 +336,9 @@ class  Biggy  {
         u64  carry = 0;  Biggy  res = val;
         for( size_t i=0 ; i<max( size(), val.size() ) || carry ; ++i )  {
             if( i == res.size() )   res.v.emplace_back( 0 );
-            res.v[i] += carry + ( i<size() ? v[i] : 0 );
-            carry = res.v[i] >= base;
-            if( carry )   res.v[i] -= base;
+            res[i] += carry + ( i<size() ? v[i] : 0 );
+            carry = res[i] >= base;
+            if( carry )   res[i] -= base;
         }
         return res;
     }
@@ -389,8 +388,8 @@ class  Biggy  {
     }
 
     Biggy &operator /= ( const Biggy& x )  {
-        Biggy a = abs(),  b = x.abs();
-        sgn = sgn * x.sgn;
+        Biggy  a = abs(),  b = x.abs();
+        sgn = ( sgn != x.sgn ) ? -1 : 1;
         if( a < b )             return  *this = Biggy();
         if( b == Biggy( 1 ) )   return  *this = a;
         Biggy   inv( basebase / b.v.back() );
@@ -431,7 +430,7 @@ class  Biggy  {
 
    // ARITMETIC OPERATORS WITH INTS
    Biggy  &operator *= ( int64_t val )  {
-        if( val < 0 )    sgn = -sgn,  val = -val;
+        if( val < 0 )   sgn = -sgn,  val = -val;
         u64  m = val,  carry = 0;
         for( size_t i=0 ; i<v.size()  ||  carry ; ++i )  {
             if( i == v.size() )  v.emplace_back( 0 );
