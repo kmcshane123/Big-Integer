@@ -379,8 +379,7 @@ class  Biggy  {
             carry = res[i] >= base;
             if( carry )   res[i] -= base;
         }
-        res.trim();
-        return res;
+        return  res.trim();
     }
 
     Biggy  operator - ( const Biggy &b ) const  {
@@ -396,8 +395,7 @@ class  Biggy  {
             if( carry )   res[i] = base + x;
             else          res[i] = x;
         }
-        res.trim();
-        return  res;
+        return  res.trim();
     }
 
     Biggy  operator * ( const Biggy &b ) const  {
@@ -414,9 +412,8 @@ class  Biggy  {
 
         Biggy  A;
         A.v = res;
-        A.sgn = ( sgn == b.sgn ) ? 1 :-1;
-        A.trim();
-        return  A;
+        A.sgn = ( sgn == b.sgn ) ? 1 : -1;
+        return  A.trim();
     }
 
     Biggy  &operator /= ( const Biggy& x )  {
@@ -470,8 +467,7 @@ class  Biggy  {
             carry = cur/base;
             v[i]  = cur %base;
         }
-        trim();
-        return  *this;
+        return  (*this).trim();
     }
 
     Biggy  &operator /= ( int64_t b )  {
@@ -482,8 +478,7 @@ class  Biggy  {
             v[i] = cur / d;
             rem  = cur % d;
         }
-        trim();
-        return  *this;
+        return  (*this).trim();
     }
 
     i64  operator % ( i64 val ) const  {
@@ -500,9 +495,10 @@ class  Biggy  {
     const u64  &operator [] ( int x )  const { return( v[x] ); }
     bool  isZero() const { return  v.empty() || ( size() == 1  &&  !v[0] ); }
     size_t  size() const { return v.size(); }
-    void  trim()  {
+    Biggy&  trim()  {
         while( !v.empty() && !v.back() )   v.pop_back();
         if( v.empty() )  sgn = 1;
+        return  *this;
     }
 
     Biggy& operator <<= ( const int& x )  {
@@ -563,11 +559,11 @@ int main()  {
         Biggy  a, b;
         cin >> a >> b;
 
-        auto [u, v] = divMod( a, b );
-        cout << u << " " << v << '\n';
+//        auto [u, v] = divMod( a, b );
+//        cout << u << " " << v << '\n';
 
 //        cout << a * b << '\n';
-//        cout << a + b << '\n';
+        cout << a + b << '\n';
     }
 
     return  0;
