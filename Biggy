@@ -285,7 +285,7 @@ namespace  garnerBiggy
               case  2:  a2[i] = x % M2;
               case  1:  a1[i] = x % M1;
             }
-	    }
+        }
         for( size_t i=0 ; i<b.size() ; ++i )  {
             u64  x = b[i];
             switch( NMODS )  {
