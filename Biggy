@@ -332,7 +332,7 @@ class  Biggy  {
         else  x = val;
         for( ; x>0 ; x/=base )   v.emplace_back( x %base );
     }
-    Biggy( string s )  { read( s ); }
+    Biggy( const string &s )  { read( s ); }
 
     // INPUT OUTPUT
     friend ostream &operator << ( ostream &stream, const Biggy &val )  {
@@ -444,7 +444,7 @@ class  Biggy  {
         return  *this;
     }
 
-    Biggy  operator % ( const Biggy& x ) const { return  (*this) - x*( (*this)/x ); }
+    Biggy  operator % ( const Biggy &x ) const { return  (*this) - x*( (*this)/x ); }
 
     friend  pair<Biggy, Biggy>  divMod( const Biggy &x, const Biggy &y )  {
         Biggy  Q = x/y;
@@ -501,14 +501,14 @@ class  Biggy  {
         return  *this;
     }
 
-    Biggy& operator <<= ( const int& x )  {
+    Biggy  &operator <<= ( const int& x )  {
         if( !isZero() )  {
             vector<u64>  add( x, 0 );
             v.insert( v.begin(), add.begin(), add.end() );
         }
         return *this;
     }
-    Biggy& operator >>= ( const int& x )  {
+    Biggy  &operator >>= ( const int& x )  {
         v = vector<u64>( v.begin() + min( x, (int)v.size() ), v.end() );
         return  *this;
     }
