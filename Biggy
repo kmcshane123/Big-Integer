@@ -201,7 +201,7 @@ class FormalPowerSeries
             this->a.clear();  return  *this; }
 
         size_t  n = this->size(),  m = b.size(),  sz = 1 << __lg( 2*(n+m-1) - 1 );
-        if( min( n, m ) <= 5 )   return  *this = convolution_brute( *this, b );
+        if( min( n, m ) <= 20 )   return  *this = convolution_brute( *this, b );
         resize( sz ),       ntt( false );
         b.resize( sz ),   b.ntt( false );
         for( size_t i=0 ; i<sz ; ++i )   a[i] *= b[i];
@@ -215,6 +215,8 @@ namespace  garnerBiggy
   using  u32 = uint32_t;
   using  u64 = uint64_t;
 
+  static u32  NMODS = 5;            // SET TO n USING setUpGarner( n )
+
   u64  powm( u64 a, u64 i, u64 m )  {
       u64  r = a,  res = 1;
       while( i )  {
@@ -227,7 +229,7 @@ namespace  garnerBiggy
   u32  invm( u32 a, u32 m )  {	return  powm( a, m - 2, m ); }
 
   static constexpr u32  M1 = 962592769, M2 = 975175681, M3 = 976224257, M4 = 985661441, M5 = 998244353;
-  static constexpr array<u32, 3>  mods{ M1, M2, M3 };
+  static constexpr array<u32, 5>  mods{ M1, M2, M3, M4, M5 };
 
   using  FPS1 = FormalPowerSeries< Mint<M1> >;
   using  FPS2 = FormalPowerSeries< Mint<M2> >;
@@ -238,8 +240,8 @@ namespace  garnerBiggy
   vector<vector<u32>>  table_coeff;
   vector<u32>          table_coeffinv;
 
-    void setUpGarner()  {
-        size_t  nmods = mods.size();
+    void setUpGarner( u32 nmods )  {
+        NMODS = nmods;
         table_coeff.assign( nmods + 1, vector<u32>( nmods, 1 ) );
         for( size_t j=0 ; j<nmods ; ++j )  {
             for( size_t k=0 ; k<nmods ; ++k )   table_coeff[j+1][k] = table_coeff[j][k];
@@ -252,7 +254,7 @@ namespace  garnerBiggy
     }
 
     u64  garner( const vector<u32> &x )  {
-        size_t  nmods = mods.size();
+        size_t  nmods = NMODS;
         vector<u32>  table_const( nmods );
         u64  res = 0,  res_coeff = 1;
         for( size_t j=0 ; j<nmods ; ++j )  {
@@ -265,11 +267,48 @@ namespace  garnerBiggy
         return  res;
     }
 
-    vector<u64>  combineMods( const vector<Mint<M1>> &a, const vector<Mint<M2>> &b,
-                              const vector<Mint<M3>> &c )  {
-        vector<u64>  res( a.size() );
-	    for( size_t i=0 ; i<a.size() ; ++i )
-            res[i] = garner( { a[i].get(), b[i].get(), c[i].get() } );
+    vector<u64>  bigMult( const vector<u64> &a, const vector<u64> &b )  {
+        size_t  n = a.size(),  m = b.size();
+
+        FPS1  a1( n ),  b1( m );
+        FPS2  a2( n ),  b2( m );
+        FPS3  a3( n ),  b3( m );
+        FPS4  a4( n ),  b4( m );
+        FPS5  a5( n ),  b5( m );
+
+        for( size_t i=0 ; i<a.size() ; ++i )  {
+            u64  x = a[i];
+            switch( NMODS )  {
+              case  5:  a5[i] = x % M5;
+              case  4:  a4[i] = x % M4;
+              case  3:  a3[i] = x % M3;
+              case  2:  a2[i] = x % M2;
+              case  1:  a1[i] = x % M1;
+            }
+	    }
+        for( size_t i=0 ; i<b.size() ; ++i )  {
+            u64  x = b[i];
+            switch( NMODS )  {
+              case  5:  b5[i] = x % M5;
+              case  4:  b4[i] = x % M4;
+              case  3:  b3[i] = x % M3;
+              case  2:  b2[i] = x % M2;
+              case  1:  b1[i] = x % M1;
+            }
+        }
+
+        switch( NMODS )  {
+          case  5:  a5 *= b5;
+          case  4:  a4 *= b4;
+          case  3:  a3 *= b3;
+          case  2:  a2 *= b2;
+          case  1:  a1 *= b1;
+        }
+
+        vector<u64>  res( a1.size() );
+	    for( size_t i=0 ; i<a1.size() ; ++i )
+            res[i] = garner( { a1.a[i].get(), a2.a[i].get(), a3.a[i].get(), a4.a[i].get(),
+                               a5.a[i].get() } );
         return  res;
     }
 };
@@ -363,27 +402,19 @@ class  Biggy  {
 
     Biggy  operator * ( const Biggy &b ) const  {
         if( !size() || !b.size() )   return Biggy( 0 );
-
-        auto  c1 = ( FPS1( { v.begin(), v.end() } ) *
-                     FPS1( { b.v.begin(), b.v.end() } ) ).a;
-        auto  c2 = ( FPS2( { v.begin(), v.end() } ) *
-                     FPS2( { b.v.begin(), b.v.end() } ) ).a;
-        auto  c3 = ( FPS3( { v.begin(), v.end() } ) *
-                     FPS3( { b.v.begin(), b.v.end() } ) ).a;
-
-        auto  ans = combineMods( c1, c2, c3 );
-
+        auto  garner = bigMult( v, b.v );
         vector<u64>  res;
-
         u64  carry = 0;
-        for( size_t i=0 ; i<ans.size() ; ++i  )  {
-            u64  cur = ans[i] + carry;
+        for( size_t i=0 ; i<garner.size() ; ++i  )  {
+            u64  cur = garner[i] + carry;
             res.push_back( cur % base );
             carry = cur/base;
         }
         if( carry )  res.push_back( carry );
 
-        Biggy  A;  A.v = res;  A.sgn = sgn * b.sgn;
+        Biggy  A;
+        A.v = res;
+        A.sgn = ( sgn == b.sgn ) ? 1 :-1;
         A.trim();
         return  A;
     }
@@ -523,7 +554,7 @@ int main()  {
     cin.tie( 0 );
     cin.sync_with_stdio( 0 );
 
-    setUpGarner();  // REQUIRED FOR MULTIPLICATION AND DIVISION
+    setUpGarner( 2 );  // REQUIRED FOR MULTIPLICATION AND DIVISION
 
     int  q;
     cin >> q;
@@ -532,11 +563,11 @@ int main()  {
         Biggy  a, b;
         cin >> a >> b;
 
-//        auto [u, v] = divMod( a, b );
-//        cout << u << " " << v << '\n';
+        auto [u, v] = divMod( a, b );
+        cout << u << " " << v << '\n';
 
 //        cout << a * b << '\n';
-        cout << a + b << '\n';
+//        cout << a + b << '\n';
     }
 
     return  0;
