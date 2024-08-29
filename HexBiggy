@@ -1,0 +1,369 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+#include <iomanip>
+
+using namespace std;
+using  i64 = int64_t;
+
+template <uint32_t mod>  // MOD INT STORED IN MONTGOMERY FORM
+class  Mint
+{
+  private:
+    using  i32 = int32_t;    using  i64 = int64_t;
+    using  u32 = uint32_t;   using  u64 = uint64_t;
+
+    static constexpr u32  get_r()  {
+        u32  ret = mod;
+        for( i32 i=0 ; i<4 ; ++i )  ret *= 2 - mod * ret;
+        return  ret;
+    }
+
+    static constexpr u32  reduce( const u64 &b )  {
+        return ( b + u64( u32( b ) * u32( -r ) ) * mod ) >> 32;
+    }
+
+    // CLASS MEMBER DATA
+    static constexpr u32  r  = get_r();
+    static constexpr u32  n2 = -u64( mod ) % mod;
+    u32                   a;
+
+    static_assert( r * mod == 1,    "invalid, r * mod != 1" );
+    static_assert( mod < (1 << 30), "invalid, mod >= 2 ^ 30" );
+    static_assert( (mod & 1) == 1,  "invalid, mod % 2 == 0" );
+
+  public:
+    constexpr Mint() : a( 0 ) {}
+    constexpr Mint( i64 b )
+        : a( reduce( u64( b % mod + mod ) * n2 ) ) {};
+
+    constexpr Mint &operator += ( const Mint &b )  {
+        if( i32( a += b.a - 2 * mod ) < 0 )   a += 2 * mod;
+        return  *this;
+    }
+    constexpr Mint &operator -= ( const Mint &b )  {
+        if( i32( a -= b.a ) < 0 )   a += 2 * mod;
+        return  *this;
+    }
+    constexpr Mint &operator *= ( const Mint &b )  {
+        a = reduce( u64( a ) * b.a );
+        return  *this;
+    }
+    constexpr Mint &operator /= ( const Mint &b )  {
+        *this *= b.inverse();
+        return  *this;
+    }
+
+    constexpr Mint operator  + (const Mint &b) const { return Mint(*this) += b; }
+    constexpr Mint operator  - (const Mint &b) const { return Mint(*this) -= b; }
+    constexpr Mint operator  * (const Mint &b) const { return Mint(*this) *= b; }
+    constexpr Mint operator  / (const Mint &b) const { return Mint(*this) /= b; }
+    constexpr Mint operator - () const {  return  Mint() - Mint(*this); }
+    Mint& operator         ++ ()  { return  *this += Mint( 1 ); }
+    Mint& operator         -- ()  { return  *this -= Mint( 1 ); }
+
+    constexpr Mint  pow( u64 n ) const  {
+        Mint  ret(  1 ), mul( *this );
+        while( n > 0 )  { if( n & 1 )  ret *= mul;   mul *= mul;  n >>= 1; }
+        return  ret;
+    }
+    constexpr Mint  inverse() const { return  pow( mod - 2 ); }
+    constexpr u32  get() const  {
+        u32  ret = reduce( a );
+        return  ret >= mod ? ret - mod : ret;
+    }
+    static constexpr u32  get_mod()  { return mod; }
+
+    constexpr bool operator == (const Mint &b) const {
+        return ( a >= mod ? a - mod : a ) == ( b.a >= mod ? b.a - mod : b.a );
+    }
+    constexpr bool operator != (const Mint &b) const  {
+        return ( a >= mod ? a - mod : a ) != ( b.a >= mod ? b.a - mod : b.a );
+    }
+
+    friend ostream &operator << ( ostream &os, const Mint &b )  {
+        return  os << b.get();
+    }
+    friend istream &operator >> ( istream &is, Mint &b )  {
+        int64_t  t;  is >> t;
+        b = Mint( t );
+        return  is;
+    }
+};
+
+template < typename T >
+class FormalPowerSeries
+{
+  public:
+    using  i64   = int64_t;
+    using  FPS   = FormalPowerSeries<T>;
+
+    vector<T>  a;
+
+  public:
+    constexpr FormalPowerSeries( size_t sz = 0 )  { a.resize( sz, 0 ); }
+    constexpr FormalPowerSeries( const initializer_list<T>  v )  { a = v; }
+    constexpr FormalPowerSeries( const vector<T>  &v )  { a = v; }
+    constexpr FormalPowerSeries( size_t sz, T val )  { a.resize( sz, val ); }
+    constexpr size_t  size() const { return a.size(); }
+    void  resize( size_t sz, T m = 0 )  { (*this).a.resize( sz, m ); }
+
+    constexpr FPS  operator - ( const FPS &a ) const { return  FPS(*this) -= a; }
+    constexpr FPS  operator + ( const FPS &a ) const { return  FPS(*this) += a; }
+    constexpr FPS  operator * ( const i64 a )  const { return  FPS(*this) *= a; }
+    constexpr FPS  operator * ( const FPS &a ) const { return  FPS(*this) *= a; }
+    constexpr FPS  operator / ( const FPS &a ) const { return  FPS(*this) /= a; }
+    constexpr FPS  operator % ( const FPS &a ) const { return  FPS(*this) %= a; }
+    FPS  &operator += ( const FPS &r )  {
+        this->resize( max( this->size(), r.size() ) );
+        for( size_t i=0 ; i<r.size() ; ++i )  this->a[i] += r.a[i];
+        return  *this;
+    }
+    FPS  &operator -= ( const FPS &r )  {
+        this->resize( max( this->size(), r.size() ) );
+        for( size_t i=0 ; i<r.size() ; ++i )  this->a[i] -= r.a[i];
+        return  *this;
+    }
+    FPS  &operator *= ( const i64 v )  {
+        for( size_t i=0 ; i<this->size() ; ++i )  this->a[i] *= v;
+        return  *this;
+    }
+    FPS  &operator *= ( const FPS &r )  {
+        this->convolution_inplace( r );
+        return  *this;
+    }
+    T  &operator [] ( size_t  x )  {
+        assert( x < this->a.size() );
+        return  a[x];
+    }
+    constexpr T  &operator [] ( size_t  x ) const {
+        assert( x < this->a.size() );
+        return  a[x];
+    }
+
+  private:
+    void ntt( bool inverse )  {
+        static bool  first = true;
+        static T  dw[30], idw[30];
+        if( first )  {
+            first = false;
+            T  root = 2;
+            unsigned  mod = T::get_mod();
+            while( root.pow( (mod - 1) / 2 ) == 1 )   ++root;
+            for( size_t i=0 ; i<30 ; ++i )
+                dw[i]  = -root.pow( (mod - 1) >> (i + 2) ),
+                idw[i] = T(1) / dw[i];
+        }
+        size_t  n = this->size();
+        assert( (n & (n - 1) ) == 0 );
+        if( not inverse )  {
+            for( size_t m=n ; m >>= 1 ; )  {
+                T  w = 1;
+                for( size_t s=0, k=0 ; s<n ; s+=2*m )  {
+                    for( size_t i=s, j=s+m ; i<s+m ; ++i, ++j )  {
+                        T  x = a[i],  y = a[j]*w;
+                        a[i] = x + y,  a[j] = x - y;
+                    }
+                    w *= dw[__builtin_ctz( ++k )];
+                }
+            }
+        } else {
+            for( size_t m=1 ; m<n ; m*=2 )  {
+                T  w = 1;
+                for( size_t s=0, k=0 ; s<n ; s+=2*m )  {
+                    for( size_t i=s, j=s+m ; i<s+m ; ++i, ++j )  {
+                        auto  x = a[i], y = a[j];
+                        a[i] = x + y,  a[j] = x - y,  a[j] *= w;
+                    }
+                    w *= idw[__builtin_ctz( ++k )];
+                }
+            }
+        }
+        auto  c = T( 1 ) / T( inverse ? n : 1 );
+        for( auto&& e : this->a )  e *= c;
+    }
+
+    FPS  convolution_brute( FPS &a, FPS &b ) const  {
+        size_t  n = a.size(),  m = b.size();
+        FPS  ans( n + m - 1 );
+        if( n < m )
+            for( size_t j=0 ; j<m ; ++j )
+                for( size_t i=0 ; i<n ; ++i )   ans[i+j] += a[i]*b[j];
+        else
+            for( size_t i=0 ; i<n ; ++i )
+                for( size_t j=0 ; j<m ; ++j )   ans[i+j] += a[i]*b[j];
+        return ans;
+    }
+
+    FPS&  convolution_inplace( FPS b )  {
+        if( this->size() == 0  ||  b.size() == 0 )  {
+            this->a.clear();  return  *this; }
+
+        size_t  n = this->size(),  m = b.size(),  sz = 1 << __lg( 2*(n+m-1) - 1 );
+        if( min( n, m ) <= 20 )   return  *this = convolution_brute( *this, b );
+        resize( sz ),       ntt( false );
+        b.resize( sz ),   b.ntt( false );
+        for( size_t i=0 ; i<sz ; ++i )   a[i] *= b[i];
+        ntt( true );  resize( n + m - 1 );
+        return  *this;
+    }
+};
+
+using  FPS1 = FormalPowerSeries< Mint<998244353> >;
+
+
+string  add( const string& s, const string& t, int b = 10 )  {
+	int  i = s.size() - 1,  j = t.size() - 1,  c = 0;
+	string res;
+	while( i >= 0 || j >= 0 || c > 0 )  {
+		int v = ( i >= 0 ? ( s[i] - '0' ) : 0 ) + ( j >= 0 ? (t[j] - '0' ) : 0 ) + c;
+		c = v / b;
+		res.push_back( '0' + ( v % b ) );
+        --i;   --j;
+	}
+	reverse( res.begin(), res.end() );
+	return  res;
+}
+
+string  sub( const string& s, const string& t, int b = 10 )  {
+	int  i = s.size() - 1,  j = t.size() - 1,  c = 0;
+	string  res;
+	while( i >= 0 )  {
+		int  vs = (int)( s[i] - '0' ) - c;
+		int  vt = j >= 0 ? ( t[j] - '0' ) : 0;
+		c = 0;
+		if( vs < vt )  {
+			vs += b;
+			c = 1;
+		}
+		res.push_back( '0' + ( vs - vt ) );
+		--i;  --j;
+	}
+	int  k = res.size() - 1;
+	while( k >= 0 && res[k] == '0' )  {
+		res.pop_back();
+		--k;
+	}
+	if( k == -1 )   res.push_back( '0' );
+	reverse( res.begin(), res.end() );
+	return  res;
+}
+
+bool comp(  string& s, const string& op, const string& t )  {
+	int  n = s.size(),  m = t.size();
+	if( op[0] == '=' )   return s == t;
+	if( op[0] == '<' )  {
+		if( n < m )   return true;
+		if( n > m )   return false;
+		return  op == "<" ? (s < t) : (s <= t);
+	}
+	else {
+		if( n > m )   return true;
+		if( n < m )   return false;
+		return  op == ">" ? (s > t) : (s >= t);
+	}
+}
+
+string  solve( string a, string b )  {
+	for( auto &c : a )   if( c > '9' )   c = c - 'A' + '9' + 1;
+	for( auto &c : b )   if( c > '9' )   c = c - 'A' + '9' + 1;
+	int  signA = 1, signB = 1;
+	if( a[0] == '-' )  {
+		signA = -1;
+		a.erase( a.begin() );
+	}
+	if( b[0] == '-' )  {
+		signB = -1;
+		b.erase( b.begin() );
+	}
+	string  res;
+	if( signA == 1 && signB == 1 )   res = sub( a, b, 16 );
+    else if( signA == 1 && signB == -1 )  {
+		if( comp( a, "<", b ) )  {
+			res = add( b, a, 16 );
+			res.insert( res.begin(), '-' );
+		}
+		else  res = sub( a, b, 16 );
+	}
+	else if( signA == -1 && signB == 1 )  {
+		if( comp( a, ">", b ) )  {
+			res = sub( a, b, 16 );
+			res.insert( res.begin(), '-' );
+		}
+		else   res = sub( b, a, 16 );
+	}
+	else if( signA == -1 && signB == -1 )  {
+		res = add( a, b, 16 );
+		res.insert( res.begin(), '-' );
+	}
+	for( auto &c : res )  if( c > '9' )   c = c - '9' + 'A' - 1;
+	return res;
+}
+
+string  mul_bint( const string& s, const string& t, int base = 10 )  {
+	if( s == "0" || t == "0" )  return "0";
+	int  n = s.size(),  m = t.size();
+	FPS1  a( n ), b( m );
+	for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
+	for( int i=0 ; i<m ; ++i )   b[i] = t[m - 1 - i] - '0';
+	auto  cm = a* b;
+	vector<int>  c( n + m - 1 );
+    for( int i=0 ; i<n+m-1 ; ++i )   c[i] = cm[i].get();
+	int  k = 0;
+	for( ; k < n+m-2 ; ++k )  {
+		c[k + 1] += c[k] / base;
+		c[k] %= base;
+	}
+	while( c[k] >= base )  {
+		c.push_back( c[k] / base );
+		c[k] %= base;
+		++k;
+	}
+	string  res;
+	res.reserve( k );
+	while( k >= 0 )  {
+		res += (char)( c[k] + '0' );
+		--k;
+	}
+	return res;
+}
+
+string  solve( string a, string b )  {
+	for( auto &c : a )   if( c > '9' )   c = c - 'A' + '9' + 1;
+	for( auto &c : b )   if( c > '9' )   c = c - 'A' + '9' + 1;
+	int  signA = 1, signB = 1;
+	if( a[0] == '-' )  {
+		signA = -1;
+		a.erase( a.begin() );
+	}
+	if( b[0] == '-' )  {
+		signB = -1;
+		b.erase( b.begin() );
+	}
+	string  res;
+	if( signA == signB )    res = mul_bint( a, b, 16 );
+	else  {
+		res = mul_bint( a, b , 16 );
+		if( res != "0" )   res.insert( res.begin(), '-' );
+	}
+	for( auto &c : res )  if( c > '9' )   c = c - '9' + 'A' - 1;
+	return res;
+}
+
+
+int  main()  {
+    ios_base::sync_with_stdio( false );
+    cin.tie( NULL );
+
+	int q;
+	cin >> q;
+
+	while( q-- )  {
+		string  a, b;
+		cin >> a >> b;
+
+		cout << solve( a, b ) << '\n';
+	}
+    return  0;
+}
