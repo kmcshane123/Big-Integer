@@ -490,7 +490,7 @@ class  Biggy  {
     Biggy  operator / ( i64 val )  { Biggy  res = *this;  return  res /= val; }
     Biggy  operator * ( i64 val )  { Biggy  res = *this;  return  res *= val; }
 
-  private:
+  public:
     u64  &operator [] ( int x )              { return( v[x] ); }
     const u64  &operator [] ( int x )  const { return( v[x] ); }
     bool  isZero() const { return  v.empty() || ( size() == 1  &&  !v[0] ); }
@@ -531,7 +531,7 @@ class  Biggy  {
         }
         trim();
     }
-    string  toString() const  {
+    string  toString()  {
         ostringstream  s;
         if( sgn == -1 )    s << '-';
         s << ( v.empty() ? 0 : v.back() );
@@ -637,6 +637,43 @@ vector<u32>  toMod2to32( const string &s, int start, u32 base )  {
     return  data;
 }
 
+    string  to_string( const vector<u32> &v, u32 base, int sign )  {
+        auto  num = v;
+        bool  negative = ( sign == -1 );
+        if( num.empty() )   return  "0";
+        string  ret;
+        u64  radix  = 1;
+        int  digits = 0;
+        while( radix * base <= 0xFFFFFFFF )  {
+            radix *= base;
+            ++digits;
+        }
+        auto  temp = num;
+        while( !temp.empty() )  {
+            u64  carry = 0;
+            for( int i=static_cast<int>(temp.size()-1) ; i>=0 ; --i )  {
+                u64  k  = (carry << 32) + temp[i];
+                temp[i] = static_cast<u32>( k / radix );
+                carry   = k - static_cast<u64>( temp[i] ) * radix;
+            }
+            while( !temp.empty() && temp.back() == 0U )   temp.pop_back();
+            u32  val = static_cast<u32>( carry );
+
+            for( int i=0 ; i<digits ; ++i )  {
+                u32  q = val / base;
+                u32  r = val - q * base;
+                ret.push_back( ( r < 10 ) ? static_cast<char>( r + '0' ) :
+                                            static_cast<char>( r + 'A' - 10 ) );
+                val = q;
+            }
+        }
+        while( ret.back() == '0' )   ret.pop_back();
+        if( negative )  ret.push_back( '-' );
+        reverse( ret.begin(), ret.end() );
+
+        return  ret;
+    }
+
 string  decToHex( string &s )  {
     int  ptr = 0;
     int  sign = 1;
@@ -646,8 +683,8 @@ string  decToHex( string &s )  {
     if( ptr == (int)s.size() )   return  "0";
 
     auto  w = toMod2to32( s, ptr, 10 );
-for( auto &x : w )  cout << x << " ";  cout << endl << endl;
-    return  " 0";
+    // w IS mod 2^32 REP IN BASE 10. NOW CONVERT TO HEX STRING.
+    return  to_string( w, 16, sign );
 }
 
 
@@ -667,13 +704,14 @@ int main()  {
         auto  st1 = hexToDec( a );
         auto  st2 = hexToDec( b );
 
-        auto  st3 = decToHex( st1 );
+        Biggy  A( st1 ), B( st2 );
+        A += B;
 
-//        Biggy  A( st1 ),  B( st2 );
+        string  ans = A.toString();
+        string  ans2 = decToHex( ans );
 
-//        cout << A + B << '\n';
+        cout << ans2 << '\n';
     }
     return  0;
 }
 
-// 2427178479 305419896 2427178479 305419896
