@@ -545,147 +545,147 @@ Biggy  operator * ( int64_t myInt, Biggy const& x )  { return  x * myInt; }
 Biggy  operator + ( int64_t myInt, Biggy const& x )  { return  x + myInt; }
 Biggy  operator - ( int64_t myInt, Biggy& x )        { return -x + myInt; }
 
-int  value_of( const char c )  {
-    return ( '0' <= c && c <= '9' ? c - '0' :
-             'a' <= c && c <= 'z' ? c - 'a' + 10 :
-             'A' <= c && c <= 'Z' ? c - 'A' + 10 : 0 );
-}
+namespace  DecimalHexConversion
+{
+  int  charVal( const char c )  {
+      return ( '0' <= c && c <= '9' ? c - '0' :
+               'a' <= c && c <= 'z' ? c - 'a' + 10 :
+               'A' <= c && c <= 'Z' ? c - 'A' + 10 : 0 );
+  }
 
-uint32_t  div_mod( vector<uint32_t> &a, const uint32_t b )  {
-    uint64_t  carry = 0;
-    for ( int i=static_cast<int>( a.size()-1 ) ; i>=0 ; --i )  {
-        const uint64_t  k = ( carry << 32 ) + a[i];
-        a[i] = static_cast<uint32_t>( k / b );
-        carry = k - static_cast<uint64_t>( a[i] ) * b;
-    }
-    while( !a.empty() && a.back() == 0U )   a.pop_back();
-    return static_cast<uint32_t>(carry);
-}
+  u32  div( vector<u32> &a, const u32 b )  {
+      uint64_t  carry = 0;
+      for ( int i=int( a.size()-1 ) ; i>=0 ; --i )  {
+          const uint64_t  k = ( carry << 32 ) + a[i];
+          a[i] = u32( k / b );
+          carry = k - uint64_t( a[i] ) * b;
+      }
+      while( !a.empty() && a.back() == 0u )   a.pop_back();
+      return  u32( carry );
+  }
 
-string  hexToDec( string &s )  {
-    int  ptr  = 0;
-    int  sign = 1;
-    if( s[ptr] == '+' )   ++ptr;
-    else if( s[ptr] == '-' )   sign = -1,     ++ptr;
-    while( ptr < (int)s.size() && s[ptr] == '0' )  ++ptr;
-    if( ptr == (int)s.size() )   return  "0";
+  string  hexToDec( string &s )  {
+      int  ptr  = 0,  sign = 1;
+      if( s[ptr] == '+' )   ++ptr;
+      else if( s[ptr] == '-' )   sign = -1,     ++ptr;
+      while( ptr < (int)s.size() && s[ptr] == '0' )  ++ptr;
+      if( ptr == (int)s.size() )   return  "0";
 
-    const int  len = s.size();
-    int  group = __builtin_ctz( 16 );
-    vector<uint32_t>  data;
-    data.reserve(( len - ptr ) / ( 32 / group ) + 1 );
-    data.push_back( 0 );
-    for( int pos=len-1, idx=0 ; pos>=ptr ; --pos )  {
-        data.back() |= value_of( s[pos] ) << idx;
-        const int  k = 32 - idx;
-        idx += group;
-        if( idx >= 32 )   data.push_back( 0 ), idx -= 32;
-        if( k < group )   data.back() |= value_of( s[pos] ) >> k;
-    }
-    // data IS mod 2^32 REP IN BASE 10. NOW CONVERT TO STRING.
-    u32  base = 10;
-    string  ret;
-    u64  radix  = 1;
-    int  digits = 0;
-    while( radix * base <= 0xFFFFFFFF )  {
-        radix *= base;
-        ++digits;
-    }
-    while( !data.empty() )  {
-        uint32_t  val = div_mod( data, radix );
-        for( int i=0 ; i<digits ; ++i )  {
-            const uint32_t  q = val / base;
-            const uint32_t  r = val - q * base;
-            ret.push_back( (r < 10) ? static_cast<char>(r + '0') : static_cast<char>(r - 10 + 'A') );
-            val = q;
-        }
-    }
-    while( ret.back() == '0' )   ret.pop_back();
-    if( sign == -1 )   ret.push_back( '-' );
-    std::reverse( ret.begin(), ret.end()) ;
-    return  ret;
-}
+      const int  len = s.size();
+      int  group = __builtin_ctz( 16 );
+      vector<u32>  data;
+      data.reserve(( len - ptr ) / ( 32 / group ) + 1 );
+      data.push_back( 0 );
+      for( int pos=len-1, idx=0 ; pos>=ptr ; --pos )  {
+          data.back() |= charVal( s[pos] ) << idx;
+          const int  k = 32 - idx;
+          idx += group;
+          if( idx >= 32 )   data.push_back( 0 ), idx -= 32;
+          if( k < group )   data.back() |= charVal( s[pos] ) >> k;
+      }
+      // data IS mod 2^32 REP IN BASE 10. NOW CONVERT TO STRING.
+      u32  base = 10;
+      string  ret;
+      u64  radix  = 1;
+      int  digits = 0;
+      while( radix * base <= 0xFFFFFFFF )  {
+          radix *= base;
+          ++digits;
+      }
+      while( !data.empty() )  {
+          uint32_t  val = div( data, radix );
+          for( int i=0 ; i<digits ; ++i )  {
+              const uint32_t  q = val / base;
+              const uint32_t  r = val - q * base;
+              ret.push_back( ( r < 10 ) ? char( r + '0' ) : char( r - 10 + 'A' ) );
+              val = q;
+          }
+      }
+      while( ret.back() == '0' )   ret.pop_back();
+      if( sign == -1 )   ret.push_back( '-' );
+      reverse( ret.begin(), ret.end() );
+      return  ret;
+  }
 
-vector<u32>  toMod2to32( const string &s, int start, u32 base )  {
-    u64  radix  = 1;
-    int  digits = 0;
-    while( radix * base <= 0xFFFFFFFF ) {
-        radix *= base;
-        ++digits;
-    }
-    const int  len = static_cast<int>( s.size() );
-    vector<u32>  data;
-    data.reserve( ( len - start ) / digits + 1 );
-    data.push_back( 0 );
-    int  rem = ( len - start ) % digits;
-    while( rem-- )
-        data[0] = data[0] * base + value_of( s[start++] );
-    for( int i=start; i<len ; i+=digits )  {
-        u32  group = 0;
-        for( int j=0 ; j<digits ; ++j )
-            group = group * base + value_of( s[i + j] );
-        u32  b = static_cast<u32>( radix );
-        u32  carry = group;
-        for( size_t i=0 ; i<data.size() ; ++i )  {
-            u64  k = static_cast<u64>( data[i] ) * b + carry;
-            data[i] = static_cast<u32>( k );
-            carry = k >> 32;
-        }
-        if( carry )   data.push_back( carry );
-        while( !data.empty() && data.back() == 0U )  data.pop_back();
-    }
-    return  data;
-}
+  vector<u32>  toMod2to32( const string &s, int start, u32 base )  {
+      u64  radix  = 1;
+      int  digits = 0;
+      while( radix * base <= 0xFFFFFFFF )  {
+          radix *= base;
+          ++digits;
+      }
+      const int  len = int( s.size() );
+      vector<u32>  data;
+      data.reserve( ( len - start ) / digits + 1 );
+      data.push_back( 0 );
+      int  rem = ( len - start ) % digits;
+      while( rem-- )
+          data[0] = data[0] * base + charVal( s[start++] );
+      for( int i=start; i<len ; i+=digits )  {
+          u32  group = 0;
+          for( int j=0 ; j<digits ; ++j )
+              group = group * base + charVal( s[i + j] );
+          u32  b = u32( radix );
+          u32  carry = group;
+          for( size_t i=0 ; i<data.size() ; ++i )  {
+              u64  k = uint64_t( data[i] ) * b + carry;
+              data[i] = u32( k );
+              carry = k >> 32;
+          }
+          if( carry )   data.push_back( carry );
+          while( !data.empty() && data.back() == 0U )  data.pop_back();
+      }
+      return  data;
+  }
 
-    string  to_string( const vector<u32> &v, u32 base, int sign )  {
-        auto  num = v;
-        bool  negative = ( sign == -1 );
-        if( num.empty() )   return  "0";
-        string  ret;
-        u64  radix  = 1;
-        int  digits = 0;
-        while( radix * base <= 0xFFFFFFFF )  {
-            radix *= base;
-            ++digits;
-        }
-        auto  temp = num;
-        while( !temp.empty() )  {
-            u64  carry = 0;
-            for( int i=static_cast<int>(temp.size()-1) ; i>=0 ; --i )  {
-                u64  k  = (carry << 32) + temp[i];
-                temp[i] = static_cast<u32>( k / radix );
-                carry   = k - static_cast<u64>( temp[i] ) * radix;
-            }
-            while( !temp.empty() && temp.back() == 0U )   temp.pop_back();
-            u32  val = static_cast<u32>( carry );
+  string  strFrom2to32( const vector<u32> &v, u32 base, int sign )  {
+      auto  num = v;
+      bool  negative = ( sign == -1 );
+      if( num.empty() )   return  "0";
+      string  ret;
+      u64  radix  = 1;
+      int  digits = 0;
+      while( radix * base <= 0xFFFFFFFF )  {
+          radix *= base;
+          ++digits;
+      }
+      auto  temp = num;
+      while( !temp.empty() )  {
+          u64  carry = 0;
+          for( int i=int( temp.size()-1 ); i>=0 ; --i )  {
+              u64  k  = (carry << 32) + temp[i];
+              temp[i] = u32( k / radix );
+              carry   = k - uint64_t( temp[i] ) * radix;
+          }
+          while( !temp.empty() && temp.back() == 0U )   temp.pop_back();
+          u32  val = u32( carry );
 
-            for( int i=0 ; i<digits ; ++i )  {
-                u32  q = val / base;
-                u32  r = val - q * base;
-                ret.push_back( ( r < 10 ) ? static_cast<char>( r + '0' ) :
-                                            static_cast<char>( r + 'A' - 10 ) );
-                val = q;
-            }
-        }
-        while( ret.back() == '0' )   ret.pop_back();
-        if( negative )  ret.push_back( '-' );
-        reverse( ret.begin(), ret.end() );
+          for( int i=0 ; i<digits ; ++i )  {
+              u32  q = val / base;
+              u32  r = val - q * base;
+              ret.push_back( ( r < 10 ) ? char( r + '0' ) : char( r + 'A' - 10 ) );
+              val = q;
+          }
+      }
+      while( ret.back() == '0' )   ret.pop_back();
+      if( negative )  ret.push_back( '-' );
+      reverse( ret.begin(), ret.end() );
+      return  ret;
+ }
 
-        return  ret;
-    }
+  string  decToHex( string &s )  {
+      int  ptr  = 0,  sign = 1;
+      if( s[ptr] == '+' )   ++ptr;
+      else if( s[ptr] == '-' )   sign = -1,  ++ptr;
+      while( ptr < (int)s.size() && s[ptr] == '0' )  ++ptr;
+      if( ptr == (int)s.size() )   return  "0";
 
-string  decToHex( string &s )  {
-    int  ptr = 0;
-    int  sign = 1;
-    if( s[ptr] == '+' )   ++ptr;
-    else if( s[ptr] == '-' )   sign = -1,     ++ptr;
-    while( ptr < (int)s.size() && s[ptr] == '0' )  ++ptr;
-    if( ptr == (int)s.size() )   return  "0";
-
-    auto  w = toMod2to32( s, ptr, 10 );
-    // w IS mod 2^32 REP IN BASE 10. NOW CONVERT TO HEX STRING.
-    return  to_string( w, 16, sign );
-}
+      auto  w = toMod2to32( s, ptr, 10 );
+      // w IS mod 2^32 REP IN BASE 10. NOW CONVERT TO HEX STRING.
+      return  strFrom2to32( w, 16, sign );
+  }
+};
+using namespace DecimalHexConversion;
 
 
 int main()  {
@@ -701,17 +701,13 @@ int main()  {
         string  a, b;
         cin >> a >> b;
 
-        auto  st1 = hexToDec( a );
-        auto  st2 = hexToDec( b );
-
-        Biggy  A( st1 ), B( st2 );
+        Biggy  A( hexToDec( a ) ), B( hexToDec( b ) );
         A += B;
 
-        string  ans = A.toString();
-        string  ans2 = decToHex( ans );
+        string  decAnswer = A.toString();
+        string  hexAnswer = decToHex( decAnswer );
 
-        cout << ans2 << '\n';
+        cout << hexAnswer << '\n';
     }
     return  0;
 }
-
