@@ -223,12 +223,12 @@ class  BiggyHex
   // CONSTRUCTORS
   BiggyHex( const string &s )  {
       str = s;
-	  for( auto &c : str )   if( c > '9' )   c = c - 'A' + '9' + 1;
-	  sgn = 1;
-	  if( str[0] == '-' )  {
-	      sgn = -1;
-	      str.erase( str.begin() );
-	  }
+      for( auto &c : str )   if( c > '9' )   c = c - 'A' + '9' + 1;
+      sgn = 1;
+      if( str[0] == '-' )  {
+          sgn = -1;
+          str.erase( str.begin() );
+      }
   }
 
   size_t  size() { return str.size(); }
@@ -272,32 +272,32 @@ class  BiggyHex
 
   string  add( const string &s, const string &t )  {
       int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
-	  string res;
-	  while( i >= 0 || j >= 0 || c > 0 )  {
-	      int  v = ( i >= 0 ? ( s[i] - '0' ) : 0 ) + ( j >= 0 ? ( t[j] - '0' ) : 0 ) + c;
-	      c = v / BASE;
-	      res.push_back( '0' + ( v % BASE ) );
+      string res;
+      while( i >= 0 || j >= 0 || c > 0 )  {
+          int  v = ( i >= 0 ? ( s[i] - '0' ) : 0 ) + ( j >= 0 ? ( t[j] - '0' ) : 0 ) + c;
+          c = v / BASE;
+          res.push_back( '0' + ( v % BASE ) );
           --i;   --j;
-	  }
+      }
       reverse( res.begin(), res.end() );
       return  res;
   }
 
   string sub( const string& s, const string& t )  {
-	  int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
-	  string  res;
-	  while( i >= 0 )  {
-	      int  vs = (s[i] - '0') - c;
-	      int  vt = j >= 0 ? t[j] - '0' : 0;
+      int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
+      string  res;
+      while( i >= 0 )  {
+          int  vs = (s[i] - '0') - c;
+          int  vt = j >= 0 ? t[j] - '0' : 0;
           c = 0;
-	      if( vs < vt )  {
-	          vs += BASE;
-	          c = 1;
-	      }
-	      res.push_back( '0' + vs - vt );
-	      --i; --j;
+          if( vs < vt )  {
+              vs += BASE;
+	      c = 1;
+	  }
+	  res.push_back( '0' + vs - vt );
+	   --i; --j;
       }
-	  int  k = res.size() - 1;
+      int  k = res.size() - 1;
       while( k >= 0 && res[k] == '0' ) {
           res.pop_back();
           --k;
@@ -308,85 +308,85 @@ class  BiggyHex
   }
 
   bool  comp( const string &s, const string &op, const string &t )  {
-	  int  n = (int)s.size(),  m = (int)t.size();
-	  if( op[0] == '=' )   return s == t;
-	  if( op[0] == '<' )  {
-	      if( n < m )   return true;
-	      if( n > m )   return false;
-	      return  op == "<" ? ( s < t ) : ( s <= t );
-	  }
-	  else  {
-	      if( n > m )   return true;
+       int  n = (int)s.size(),  m = (int)t.size();
+       if( op[0] == '=' )   return s == t;
+       if( op[0] == '<' )  {
+           if( n < m )   return true;
+           if( n > m )   return false;
+           return  op == "<" ? ( s < t ) : ( s <= t );
+      }
+      else  {
+          if( n > m )   return true;
           if( n < m )   return false;
-	      return  op == ">" ? ( s > t ) : ( s >= t );
-	  }
+          return  op == ">" ? ( s > t ) : ( s >= t );
+      }
   }
 
   string  mult( const string &s, const string &t )  {
       int  n = s.size(),  m = t.size();
       FPS1  a( n ), b( m );
-	  for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
-	  for( int i=0 ; i<m ; ++i )   b[i] = t[m - 1 - i] - '0';
-	  a *= b;
-	  vector<int>  c( n + m - 1 );
+      for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
+      for( int i=0 ; i<m ; ++i )   b[i] = t[m - 1 - i] - '0';
+      a *= b;
+      vector<int>  c( n + m - 1 );
       for( int i=0 ; i<n+m-1 ; ++i )   c[i] = a[i].get();
-	  int  k = 0;
-	  for( ; k < n+m-2 ; ++k )  {
-	      c[k + 1] += c[k] / BASE;
-	      c[k] %= BASE;
-	  }
-	  while( c[k] >= BASE )  {
-	      c.push_back( c[k] / BASE );
-	      c[k] %= BASE;
-		  ++k;
-	  }
-	  string  res;
-	  res.reserve( k );
-	  while( k >= 0 )  {
-	      res += (char)( c[k] + '0' );
-	     --k;
-	  }
-	  return  res;
+      int  k = 0;
+      for( ; k < n+m-2 ; ++k )  {
+          c[k + 1] += c[k] / BASE;
+          c[k] %= BASE;
+      }
+      while( c[k] >= BASE )  {
+          c.push_back( c[k] / BASE );
+          c[k] %= BASE;
+          ++k;
+      }
+      string  res;
+      res.reserve( k );
+      while( k >= 0 )  {
+          res += (char)( c[k] + '0' );
+          --k;
+      }
+      return  res;
   }
 
   string  div( const string &s, const string &t, int B = 10 )  {
-	  int  n = s.size(),  m = t.size();
-	  string  t_inv = "1";
-	  string  two   = "2";
-	  int  shift    = m;
-	  for( int k=1 ; k<64*(n + 3) ; k*=2 )  {
-	      int  pshift = shift;
-	      int  len = max( min( 2 * k, n + 3 ), 1 );
-	      string  tmp;
+      int  n = s.size(),  m = t.size();
+      string  t_inv = "1";
+      string  two   = "2";
+      int  shift    = m;
+      for( int k=1 ; k<64*(n + 3) ; k*=2 )  {
+          int  pshift = shift;
+          int  len = max( min( 2 * k, n + 3 ), 1 );
+          string  tmp;
           for( int i=0; i<min( len, m ) ; ++i )   tmp += t[i];
-	      shift -= m - tmp.size();
-	      tmp = mult( tmp, t_inv, B );
-	      if( (int)tmp.size() > len )  {
-	          shift -= tmp.size() - len;
-	          tmp.resize( len );
-	      }
-	      while( (int)two.size() > shift + 1 )   two.pop_back();
-	      while( (int)two.size() < shift + 1 )   two += '0';
-	      tmp = sub( two, tmp, B );
-	      t_inv = mult( t_inv, tmp, B );
-	      shift += pshift;
-	      if( int(t_inv.size() ) > len )  {
-              shift -= t_inv.size() - len;
-	          t_inv.resize( len );
-	      }
+	  shift -= m - tmp.size();
+	  tmp = mult( tmp, t_inv, B );
+	  if( (int)tmp.size() > len )  {
+	      shift -= tmp.size() - len;
+	      tmp.resize( len );
 	  }
+	  while( (int)two.size() > shift + 1 )   two.pop_back();
+	  while( (int)two.size() < shift + 1 )   two += '0';
+	  tmp = sub( two, tmp, B );
+	  t_inv = mult( t_inv, tmp, B );
+	  shift += pshift;
+	  if( int(t_inv.size() ) > len )  {
+              shift -= t_inv.size() - len;
+	      t_inv.resize( len );
+          }
+      }
       string  res = mult( s, t_inv, B );
-	  res.resize( max( int( res.size() ) + 1 - m - int( t_inv.size() ), 0 ) );
-	  if( res.empty() )   res = "0";
-	  string  res2 = add( res, "1", B );
-	  if( comp( mult( res2, t, B ), "<=", s ) )   res = move( res2 );
+      res.resize( max( int( res.size() ) + 1 - m - int( t_inv.size() ), 0 ) );
+      if( res.empty() )   res = "0";
+      string  res2 = add( res, "1", B );
+      if( comp( mult( res2, t, B ), "<=", s ) )   res = move( res2 );
       return  res;
   }
 
   pair<string, string>  modDiv( const string &s, const string &t, int base = 10 )  {
-	  string  q = div( s, t, base );
-	  string  r = sub( s, mult( q, t, base ), base );
-	  return { q, r };
+      string  q = div( s, t, base );
+      string  r = sub( s, mult( q, t, base ), base );
+      return { q, r };
   }
 
   friend ostream &operator << ( ostream &os, const BiggyHex &b )  {
@@ -407,10 +407,10 @@ int  main()  {
     ios_base::sync_with_stdio( false );
     cin.tie( NULL );
 
-	int q;
-	cin >> q;
+    int q;
+    cin >> q;
 
-	while( q-- )  {
+    while( q-- )  {
         string  a, b;
         cin >> a >> b;
         BiggyHex<16>  A( a ), B( b );
@@ -419,6 +419,6 @@ int  main()  {
         A *= B;
 
         cout << A << '\n';
-	}
+    }
     return  0;
 }
