@@ -238,7 +238,7 @@ class  BiggyHex
       return  str[x];
   }
 
-  BiggyHex  &operator += ( BiggyHex &b )  {
+  BiggyHex  &operator += ( const BiggyHex &b )  {
       if( sgn == 1  &&  b.sgn == 1 )         str = add( str, b.str );
       else if( sgn == -1  &&  b.sgn == -1 )  str = add( str, b.str );
       else if( sgn == 1  &&  b.sgn == -1 )
@@ -260,27 +260,28 @@ class  BiggyHex
       return  (*this);
   }
 
-  BiggyHex  &operator *= ( BiggyHex &b )  {
+  BiggyHex  &operator *= ( const BiggyHex &b )  {
       if( str == "0" || b.str == "0" )  { str = "0";  sgn = 1;  return (*this); }
       str = mult( str, b.str );
       sgn = ( sgn == b.sgn ) ? 1 : -1;
       return  (*this);
   }
 
-  BiggyHex  &operator -= ( BiggyHex &b )  {
-      b.sgn = ( b.sgn == -1 ) ? 1 : -1;
-      (*this) += b;
+  BiggyHex  &operator -= ( const BiggyHex &b )  {
+      BiggyHex  t( b );
+      t.sgn = ( b.sgn == -1 ) ? 1 : -1;
+      (*this) += t;
       return  (*this );
   }
 
-  BiggyHex  &operator /= ( BiggyHex &b )  {
+  BiggyHex  &operator /= ( const BiggyHex &b )  {
       if( str == "0" || b.str == "0" )  { str = "0";  sgn = 1;  return (*this); }
       str = div( str, b.str );
       sgn = ( sgn == b.sgn ) ? 1 : -1;
       return  (*this);
   }
 
-  pair<BiggyHex, BiggyHex>  divMod( BiggyHex &t )  {
+  pair<BiggyHex, BiggyHex>  divMod( const BiggyHex &t )  {
       auto [q, r] = divMod( str, t.str );
       BiggyHex  Q( q, false ), R( r, false );
       return  { Q, R };
@@ -292,7 +293,7 @@ class  BiggyHex
   BiggyHex  operator  / ( BiggyHex &b ) const { return BiggyHex(*this) /= b; }
   BiggyHex  operator  % ( BiggyHex &b ) const { return divMod( (*this), b ).second; }
 
-  string  add( string &s, string &t )  {
+  string  add( const string &s, const string &t )  {
       int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
       string res;
       while( i >= 0 || j >= 0 || c > 0 )  {
@@ -305,7 +306,7 @@ class  BiggyHex
       return  res;
   }
 
-  string sub( string& s, string& t )  {
+  string sub( const string& s, const string& t )  {
       int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
       string  res;
       while( i >= 0 )  {
@@ -344,7 +345,7 @@ class  BiggyHex
       }
   }
 
-  string  mult( string &s, string &t )  {
+  string  mult( const string &s, const string &t )  {
       int  n = s.size(),  m = t.size();
       FPS1  a( n ), b( m );
       for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
@@ -371,7 +372,7 @@ class  BiggyHex
       return  res;
   }
 
-  string  div( string &s, string &t )  {
+  string  div( const string &s, const string &t )  {
       int  n = s.size(),  m = t.size();
       string  zero  = "0";
       string  one   = "1";
@@ -407,7 +408,7 @@ class  BiggyHex
       return  res;
   }
 
-  pair< string, string >  divMod( string &s, string &t )  {
+  pair< string, string >  divMod( const string &s, const string &t )  {
       string  q = div( s, t );
       auto    m = mult( q, t );
       string  r = sub( s, m );
