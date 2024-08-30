@@ -1,3 +1,5 @@
+// MAINLY ecottea's CODE
+// https://judge.yosupo.jp/submission/199139
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -210,146 +212,195 @@ class FormalPowerSeries
     }
 };
 
-using  FPS1 = FormalPowerSeries< Mint<998244353> >;
+template<int BASE>
+class  BiggyHex
+{
+  using  FPS1 = FormalPowerSeries< Mint<998244353> >;
+  public:
+    string  str;
+    int     sgn;
 
+  // CONSTRUCTORS
+  BiggyHex( const string &s )  {
+      str = s;
+	  for( auto &c : str )   if( c > '9' )   c = c - 'A' + '9' + 1;
+	  sgn = 1;
+	  if( str[0] == '-' )  {
+	      sgn = -1;
+	      str.erase( str.begin() );
+	  }
+  }
 
-string  add( const string& s, const string& t, int b = 10 )  {
-	int  i = s.size() - 1,  j = t.size() - 1,  c = 0;
-	string res;
-	while( i >= 0 || j >= 0 || c > 0 )  {
-		int v = ( i >= 0 ? ( s[i] - '0' ) : 0 ) + ( j >= 0 ? (t[j] - '0' ) : 0 ) + c;
-		c = v / b;
-		res.push_back( '0' + ( v % b ) );
-        --i;   --j;
-	}
-	reverse( res.begin(), res.end() );
-	return  res;
-}
+  size_t  size() { return str.size(); }
+  char  &operator [] ( size_t  x )  {
+      assert( x < size() );
+      return  str[x];
+  }
 
-string  sub( const string& s, const string& t, int b = 10 )  {
-	int  i = s.size() - 1,  j = t.size() - 1,  c = 0;
-	string  res;
-	while( i >= 0 )  {
-		int  vs = (int)( s[i] - '0' ) - c;
-		int  vt = j >= 0 ? ( t[j] - '0' ) : 0;
-		c = 0;
-		if( vs < vt )  {
-			vs += b;
-			c = 1;
-		}
-		res.push_back( '0' + ( vs - vt ) );
-		--i;  --j;
-	}
-	int  k = res.size() - 1;
-	while( k >= 0 && res[k] == '0' )  {
-		res.pop_back();
-		--k;
-	}
-	if( k == -1 )   res.push_back( '0' );
-	reverse( res.begin(), res.end() );
-	return  res;
-}
+  BiggyHex  &operator += ( BiggyHex &b )  {
+      if( sgn == 1  &&  b.sgn == 1 )         str = add( str, b.str );
+      else if( sgn == -1  &&  b.sgn == -1 )  str = add( str, b.str );
+      else if( sgn == 1  &&  b.sgn == -1 )
+          if( comp( str, "<", b.str ) )  {
+              str = sub( b.str, str );
+              sgn = -1;
+          }
+          else  str = sub( str, b.str );
+      else  {
+          if( comp( str, ">", b.str ) )  {
+              str = sub( str, b.str );
+             sgn = -1;
+          }
+          else  {
+              sgn = 1;
+              str = sub( b.str, str );
+          }
+      }
+      return  (*this);
+  }
 
-bool comp(  string& s, const string& op, const string& t )  {
-	int  n = s.size(),  m = t.size();
-	if( op[0] == '=' )   return s == t;
-	if( op[0] == '<' )  {
-		if( n < m )   return true;
-		if( n > m )   return false;
-		return  op == "<" ? (s < t) : (s <= t);
-	}
-	else {
-		if( n > m )   return true;
-		if( n < m )   return false;
-		return  op == ">" ? (s > t) : (s >= t);
-	}
-}
+  BiggyHex  &operator *= ( BiggyHex &b )  {
+      if( str == "0" || b.str == "0" )  { str = "0";  sgn = 1;  return (*this); }
+      str = mult( str, b.str );
+      sgn = ( sgn == b.sgn ) ? 1 : -1;
+      return  (*this);
+  }
 
-string  solve( string a, string b )  {
-	for( auto &c : a )   if( c > '9' )   c = c - 'A' + '9' + 1;
-	for( auto &c : b )   if( c > '9' )   c = c - 'A' + '9' + 1;
-	int  signA = 1, signB = 1;
-	if( a[0] == '-' )  {
-		signA = -1;
-		a.erase( a.begin() );
-	}
-	if( b[0] == '-' )  {
-		signB = -1;
-		b.erase( b.begin() );
-	}
-	string  res;
-	if( signA == 1 && signB == 1 )   res = sub( a, b, 16 );
-    else if( signA == 1 && signB == -1 )  {
-		if( comp( a, "<", b ) )  {
-			res = add( b, a, 16 );
-			res.insert( res.begin(), '-' );
-		}
-		else  res = sub( a, b, 16 );
-	}
-	else if( signA == -1 && signB == 1 )  {
-		if( comp( a, ">", b ) )  {
-			res = sub( a, b, 16 );
-			res.insert( res.begin(), '-' );
-		}
-		else   res = sub( b, a, 16 );
-	}
-	else if( signA == -1 && signB == -1 )  {
-		res = add( a, b, 16 );
-		res.insert( res.begin(), '-' );
-	}
-	for( auto &c : res )  if( c > '9' )   c = c - '9' + 'A' - 1;
-	return res;
-}
+  BiggyHex  operator  + ( BiggyHex &b ) const { return BiggyHex(*this) += b; }
+  BiggyHex  operator  - ( BiggyHex &b ) const { return BiggyHex(*this) -= b; }
+  BiggyHex  operator  * ( BiggyHex &b ) const { return BiggyHex(*this) *= b; }
 
-string  mul_bint( const string& s, const string& t, int base = 10 )  {
-	if( s == "0" || t == "0" )  return "0";
-	int  n = s.size(),  m = t.size();
-	FPS1  a( n ), b( m );
-	for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
-	for( int i=0 ; i<m ; ++i )   b[i] = t[m - 1 - i] - '0';
-	auto  cm = a* b;
-	vector<int>  c( n + m - 1 );
-    for( int i=0 ; i<n+m-1 ; ++i )   c[i] = cm[i].get();
-	int  k = 0;
-	for( ; k < n+m-2 ; ++k )  {
-		c[k + 1] += c[k] / base;
-		c[k] %= base;
-	}
-	while( c[k] >= base )  {
-		c.push_back( c[k] / base );
-		c[k] %= base;
-		++k;
-	}
-	string  res;
-	res.reserve( k );
-	while( k >= 0 )  {
-		res += (char)( c[k] + '0' );
-		--k;
-	}
-	return res;
-}
+  string  add( const string &s, const string &t )  {
+      int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
+	  string res;
+	  while( i >= 0 || j >= 0 || c > 0 )  {
+	      int  v = ( i >= 0 ? ( s[i] - '0' ) : 0 ) + ( j >= 0 ? ( t[j] - '0' ) : 0 ) + c;
+	      c = v / BASE;
+	      res.push_back( '0' + ( v % BASE ) );
+          --i;   --j;
+	  }
+      reverse( res.begin(), res.end() );
+      return  res;
+  }
 
-string  solve( string a, string b )  {
-	for( auto &c : a )   if( c > '9' )   c = c - 'A' + '9' + 1;
-	for( auto &c : b )   if( c > '9' )   c = c - 'A' + '9' + 1;
-	int  signA = 1, signB = 1;
-	if( a[0] == '-' )  {
-		signA = -1;
-		a.erase( a.begin() );
-	}
-	if( b[0] == '-' )  {
-		signB = -1;
-		b.erase( b.begin() );
-	}
-	string  res;
-	if( signA == signB )    res = mul_bint( a, b, 16 );
-	else  {
-		res = mul_bint( a, b , 16 );
-		if( res != "0" )   res.insert( res.begin(), '-' );
-	}
-	for( auto &c : res )  if( c > '9' )   c = c - '9' + 'A' - 1;
-	return res;
-}
+  string sub( const string& s, const string& t )  {
+	  int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
+	  string  res;
+	  while( i >= 0 )  {
+	      int  vs = (s[i] - '0') - c;
+	      int  vt = j >= 0 ? t[j] - '0' : 0;
+          c = 0;
+	      if( vs < vt )  {
+	          vs += BASE;
+	          c = 1;
+	      }
+	      res.push_back( '0' + vs - vt );
+	      --i; --j;
+      }
+	  int  k = res.size() - 1;
+      while( k >= 0 && res[k] == '0' ) {
+          res.pop_back();
+          --k;
+	  }
+      if( k == -1 )  res.push_back( '0' );
+      reverse( res.begin(), res.end() );
+      return  res;
+  }
+
+  bool  comp( const string &s, const string &op, const string &t )  {
+	  int  n = (int)s.size(),  m = (int)t.size();
+	  if( op[0] == '=' )   return s == t;
+	  if( op[0] == '<' )  {
+	      if( n < m )   return true;
+	      if( n > m )   return false;
+	      return  op == "<" ? ( s < t ) : ( s <= t );
+	  }
+	  else  {
+	      if( n > m )   return true;
+          if( n < m )   return false;
+	      return  op == ">" ? ( s > t ) : ( s >= t );
+	  }
+  }
+
+  string  mult( const string &s, const string &t )  {
+      int  n = s.size(),  m = t.size();
+      FPS1  a( n ), b( m );
+	  for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
+	  for( int i=0 ; i<m ; ++i )   b[i] = t[m - 1 - i] - '0';
+	  a *= b;
+	  vector<int>  c( n + m - 1 );
+      for( int i=0 ; i<n+m-1 ; ++i )   c[i] = a[i].get();
+	  int  k = 0;
+	  for( ; k < n+m-2 ; ++k )  {
+	      c[k + 1] += c[k] / BASE;
+	      c[k] %= BASE;
+	  }
+	  while( c[k] >= BASE )  {
+	      c.push_back( c[k] / BASE );
+	      c[k] %= BASE;
+		  ++k;
+	  }
+	  string  res;
+	  res.reserve( k );
+	  while( k >= 0 )  {
+	      res += (char)( c[k] + '0' );
+	     --k;
+	  }
+	  return  res;
+  }
+
+  string  div( const string &s, const string &t, int B = 10 )  {
+	  int  n = s.size(),  m = t.size();
+	  string  t_inv = "1";
+	  string  two   = "2";
+	  int  shift    = m;
+	  for( int k=1 ; k<64*(n + 3) ; k*=2 )  {
+	      int  pshift = shift;
+	      int  len = max( min( 2 * k, n + 3 ), 1 );
+	      string  tmp;
+          for( int i=0; i<min( len, m ) ; ++i )   tmp += t[i];
+	      shift -= m - tmp.size();
+	      tmp = mult( tmp, t_inv, B );
+	      if( (int)tmp.size() > len )  {
+	          shift -= tmp.size() - len;
+	          tmp.resize( len );
+	      }
+	      while( (int)two.size() > shift + 1 )   two.pop_back();
+	      while( (int)two.size() < shift + 1 )   two += '0';
+	      tmp = sub( two, tmp, B );
+	      t_inv = mult( t_inv, tmp, B );
+	      shift += pshift;
+	      if( int(t_inv.size() ) > len )  {
+              shift -= t_inv.size() - len;
+	          t_inv.resize( len );
+	      }
+	  }
+      string  res = mult( s, t_inv, B );
+	  res.resize( max( int( res.size() ) + 1 - m - int( t_inv.size() ), 0 ) );
+	  if( res.empty() )   res = "0";
+	  string  res2 = add( res, "1", B );
+	  if( comp( mult( res2, t, B ), "<=", s ) )   res = move( res2 );
+      return  res;
+  }
+
+  pair<string, string>  modDiv( const string &s, const string &t, int base = 10 )  {
+	  string  q = div( s, t, base );
+	  string  r = sub( s, mult( q, t, base ), base );
+	  return { q, r };
+  }
+
+  friend ostream &operator << ( ostream &os, const BiggyHex &b )  {
+      string  ret = b.str;
+      for( auto &c : ret )  if( c > '9' )   c = c - '9' + 'A' - 1;
+      if( b.sgn == -1 )   ret.insert( ret.begin(), '-' );
+      return  os << ret;
+  }
+  friend istream &operator >> ( istream &is, BiggyHex &b )  {
+      string  t;  is >> t;
+      b = BiggyHex( t );
+      return  is;
+  }
+};
 
 
 int  main()  {
@@ -360,10 +411,14 @@ int  main()  {
 	cin >> q;
 
 	while( q-- )  {
-		string  a, b;
-		cin >> a >> b;
+        string  a, b;
+        cin >> a >> b;
+        BiggyHex<16>  A( a ), B( b );
 
-		cout << solve( a, b ) << '\n';
+//        A += B;
+        A *= B;
+
+        cout << A << '\n';
 	}
     return  0;
 }
