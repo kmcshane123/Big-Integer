@@ -216,216 +216,222 @@ template<int BASE>
 class  BiggyHex
 {
   using  FPS1 = FormalPowerSeries< Mint<998244353> >;
-  public:
+  private:
     string  str;
     int     sgn;
 
-  // CONSTRUCTORS
-  BiggyHex( const string &s, bool pre = true )  {
-      str = s;
-      if( pre )
-          for( auto &c : str )   if( c > '9' )   c = c - 'A' + '9' + 1;
-      sgn = 1;
-      if( str[0] == '-' )  {
-          sgn = -1;
-          str.erase( str.begin() );
-      }
-  }
+  public:
+    // CONSTRUCTORS
+    constexpr  BiggyHex()  { sgn = 1;  str = "0"; }
+    constexpr  BiggyHex( const BiggyHex & b )  { sgn = b.sgn;  str = b.str; }
+    constexpr  BiggyHex( const string &s, bool pre = true )  {
+        str = s;
+        if( pre )   for( auto &c : str )   if( c > '9' )   c = c - 'A' + '9' + 1;
+        if( str[0] == '-' )  {
+            sgn = -1;
+            str.erase( str.begin() );
+        }
+        else  sgn = 1;
+    }
 
-  size_t  size() { return str.size(); }
-  char  &operator [] ( size_t  x )  {
-      assert( x < size() );
-      return  str[x];
-  }
+  public:
+    // ARITMETIC OPERATORS
+    constexpr  size_t  size() { return str.size(); }
 
-  BiggyHex  &operator += ( const BiggyHex &b )  {
-      if( sgn == 1  &&  b.sgn == 1 )         str = add( str, b.str );
-      else if( sgn == -1  &&  b.sgn == -1 )  str = add( str, b.str );
-      else if( sgn == 1  &&  b.sgn == -1 )
-          if( comp( str, "<", b.str ) )  {
-              str = sub( b.str, str );
-              sgn = -1;
-          }
-          else  str = sub( str, b.str );
-      else  {
-          if( comp( str, ">", b.str ) )  {
-              str = sub( str, b.str );
-             sgn = -1;
-          }
-          else  {
-              sgn = 1;
-              str = sub( b.str, str );
-          }
-      }
-      return  (*this);
-  }
+    constexpr BiggyHex  &operator += ( const BiggyHex &b )  {
+        if( sgn == 1  &&  b.sgn == 1 )         str = add( str, b.str );
+        else if( sgn == -1  &&  b.sgn == -1 )  str = add( str, b.str );
+        else if( sgn ==  1  &&  b.sgn == -1 )
+            if( comp( str, "<", b.str ) )  {
+                str = sub( b.str, str );
+                sgn = -1;
+            }
+            else  str = sub( str, b.str );
+        else  {
+            if( comp( str, ">", b.str ) )  {
+                str = sub( str, b.str );
+                sgn = -1;
+            }
+            else  {
+                sgn = 1;
+                str = sub( b.str, str );
+            }
+        }
+        return  (*this);
+    }
 
-  BiggyHex  &operator *= ( const BiggyHex &b )  {
-      if( str == "0" || b.str == "0" )  { str = "0";  sgn = 1;  return (*this); }
-      str = mult( str, b.str );
-      sgn = ( sgn == b.sgn ) ? 1 : -1;
-      return  (*this);
-  }
+    constexpr BiggyHex  &operator *= ( const BiggyHex &b )  {
+        if( str == "0" || b.str == "0" )  { str = "0";  sgn = 1;  return (*this); }
+        str = mult( str, b.str );
+        sgn = ( sgn == b.sgn ) ? 1 : -1;
+        return  (*this);
+    }
 
-  BiggyHex  &operator -= ( const BiggyHex &b )  {
-      BiggyHex  t( b );
-      t.sgn = ( b.sgn == -1 ) ? 1 : -1;
-      (*this) += t;
-      return  (*this );
-  }
+    constexpr BiggyHex  &operator -= ( const BiggyHex &b )  {
+        BiggyHex  t( b );
+        t.sgn = ( b.sgn == -1 ) ? 1 : -1;
+        (*this) += t;
+        return  (*this );
+    }
 
-  BiggyHex  &operator /= ( const BiggyHex &b )  {
-      if( str == "0" || b.str == "0" )  { str = "0";  sgn = 1;  return (*this); }
-      str = div( str, b.str );
-      sgn = ( sgn == b.sgn ) ? 1 : -1;
-      return  (*this);
-  }
+    constexpr BiggyHex  &operator /= ( const BiggyHex &b )  {
+        if( str == "0" || b.str == "0" )  { str = "0";  sgn = 1;  return (*this); }
+        str = div( str, b.str );
+        sgn = ( sgn == b.sgn ) ? 1 : -1;
+        return  (*this);
+    }
 
-  pair<BiggyHex, BiggyHex>  divMod( const BiggyHex &t )  {
-      auto [q, r] = divMod( str, t.str );
-      BiggyHex  Q( q, false ), R( r, false );
-      return  { Q, R };
-  }
+    constexpr pair<BiggyHex, BiggyHex>  divMod( const BiggyHex &t )  {
+        auto [q, r] = divMod( str, t.str );
+        BiggyHex  Q( q, false ), R( r, false );
+        return  { Q, R };
+    }
 
-  BiggyHex  operator  + ( BiggyHex &b ) const { return BiggyHex(*this) += b; }
-  BiggyHex  operator  - ( BiggyHex &b ) const { return BiggyHex(*this) -= b; }
-  BiggyHex  operator  * ( BiggyHex &b ) const { return BiggyHex(*this) *= b; }
-  BiggyHex  operator  / ( BiggyHex &b ) const { return BiggyHex(*this) /= b; }
-  BiggyHex  operator  % ( BiggyHex &b ) const { return divMod( (*this), b ).second; }
+    constexpr BiggyHex  operator  + ( BiggyHex &b ) const { return BiggyHex(*this) += b; }
+    constexpr BiggyHex  operator  - ( BiggyHex &b ) const { return BiggyHex(*this) -= b; }
+    constexpr BiggyHex  operator  * ( BiggyHex &b ) const { return BiggyHex(*this) *= b; }
+    constexpr BiggyHex  operator  / ( BiggyHex &b ) const { return BiggyHex(*this) /= b; }
+    constexpr BiggyHex  operator  % ( BiggyHex &b ) const { return divMod( (*this), b ).second; }
 
-  string  add( const string &s, const string &t )  {
-      int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
-      string res;
-      while( i >= 0 || j >= 0 || c > 0 )  {
-          int  v = ( i >= 0 ? ( s[i] - '0' ) : 0 ) + ( j >= 0 ? ( t[j] - '0' ) : 0 ) + c;
-          c = v / BASE;
-          res.push_back( '0' + ( v % BASE ) );
-          --i;   --j;
-      }
-      reverse( res.begin(), res.end() );
-      return  res;
-  }
+    friend ostream &operator << ( ostream &os, const BiggyHex &b )  {
+        string  ret = b.str;
+        for( auto &c : ret )  if( c > '9' )   c = c - '9' + 'A' - 1;
+        if( b.sgn == -1 )   ret.insert( ret.begin(), '-' );
+        return  os << ret;
+    }
+    friend istream &operator >> ( istream &is, BiggyHex &b )  {
+        string  t;  is >> t;
+        b = BiggyHex( t );
+        return  is;
+    }
 
-  string sub( const string& s, const string& t )  {
-      int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
-      string  res;
-      while( i >= 0 )  {
-          int  vs = (s[i] - '0') - c;
-          int  vt = j >= 0 ? t[j] - '0' : 0;
-          c = 0;
-          if( vs < vt )  {
-              vs += BASE;
-	      c = 1;
-	  }
-	  res.push_back( '0' + vs - vt );
-	   --i; --j;
-      }
-      int  k = res.size() - 1;
-      while( k >= 0 && res[k] == '0' ) {
-          res.pop_back();
-          --k;
-	  }
-      if( k == -1 )  res.push_back( '0' );
-      reverse( res.begin(), res.end() );
-      return  res;
-  }
+  private:
+    constexpr string  add( const string &s, const string &t )  {
+        int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
+        string res;
+        while( i >= 0 || j >= 0 || c > 0 )  {
+            int  v = ( i >= 0 ? ( s[i] - '0' ) : 0 ) + ( j >= 0 ? ( t[j] - '0' ) : 0 ) + c;
+            c = v / BASE;
+            res.push_back( '0' + ( v % BASE ) );
+            --i;   --j;
+        }
+        reverse( res.begin(), res.end() );
+        return  res;
+    }
 
-  bool  comp( const string &s, const string &op, const string &t )  {
-       int  n = (int)s.size(),  m = (int)t.size();
-       if( op[0] == '=' )   return s == t;
-       if( op[0] == '<' )  {
-           if( n < m )   return true;
-           if( n > m )   return false;
-           return  op == "<" ? ( s < t ) : ( s <= t );
-      }
-      else  {
-          if( n > m )   return true;
-          if( n < m )   return false;
-          return  op == ">" ? ( s > t ) : ( s >= t );
-      }
-  }
+    constexpr string  sub( const string& s, const string& t )  {
+        int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
+       string  res;
+        while( i >= 0 )  {
+            int  vs = (s[i] - '0') - c;
+            int  vt = j >= 0 ? t[j] - '0' : 0;
+            c = 0;
+            if( vs < vt )  {
+                vs += BASE;
+	            c = 1;
+	        }
+	        res.push_back( '0' + vs - vt );
+	        --i; --j;
+        }
+        int  k = res.size() - 1;
+        while( k >= 0 && res[k] == '0' ) {
+            res.pop_back();
+            --k;
+	    }
+        if( k == -1 )  res.push_back( '0' );
+        reverse( res.begin(), res.end() );
+        return  res;
+    }
 
-  string  mult( const string &s, const string &t )  {
-      int  n = s.size(),  m = t.size();
-      FPS1  a( n ), b( m );
-      for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
-      for( int i=0 ; i<m ; ++i )   b[i] = t[m - 1 - i] - '0';
-      a *= b;
-      vector<int>  c( n + m - 1 );
-      for( int i=0 ; i<n+m-1 ; ++i )   c[i] = a[i].get();
-      int  k = 0;
-      for( ; k < n+m-2 ; ++k )  {
-          c[k + 1] += c[k] / BASE;
-          c[k] %= BASE;
-      }
-      while( c[k] >= BASE )  {
-          c.push_back( c[k] / BASE );
-          c[k] %= BASE;
-          ++k;
-      }
-      string  res;
-      res.reserve( k );
-      while( k >= 0 )  {
-          res += (char)( c[k] + '0' );
-          --k;
-      }
-      return  res;
-  }
+    constexpr bool  comp( const string &s, const string &op, const string &t )  {
+         int  n = (int)s.size(),  m = (int)t.size();
+         if( op[0] == '=' )   return s == t;
+         if( op[0] == '<' )  {
+             if( n < m )   return true;
+             if( n > m )   return false;
+             return  op == "<" ? ( s < t ) : ( s <= t );
+        }
+        else  {
+            if( n > m )   return true;
+            if( n < m )   return false;
+            return  op == ">" ? ( s > t ) : ( s >= t );
+        }
+    }
 
-  string  div( const string &s, const string &t )  {
-      int  n = s.size(),  m = t.size();
-      string  zero  = "0";
-      string  one   = "1";
-      string  t_inv = "1";
-      string  two   = "2";
-      int  shift    = m;
-      for( int k=1 ; k<64*(n + 3) ; k*=2 )  {
-          int  pshift = shift;
-          int  len = max( min( 2 * k, n + 3 ), 1 );
-          string  tmp;
-          for( int i=0; i<min( len, m ) ; ++i )   tmp += t[i];
-	  shift -= m - tmp.size();
-	  tmp = mult( tmp, t_inv );
-	  if( (int)tmp.size() > len )  {
-	      shift -= tmp.size() - len;
-	      tmp.resize( len );
-	  }
-	  while( (int)two.size() > shift + 1 )   two.pop_back();
-	  while( (int)two.size() < shift + 1 )   two += '0';
-	  tmp = sub( two, tmp );
-	  t_inv = mult( t_inv, tmp );
-	  shift += pshift;
-	  if( int(t_inv.size() ) > len )  {
-              shift -= t_inv.size() - len;
-	      t_inv.resize( len );
-          }
-      }
-      string  res = mult( s, t_inv );
-      res.resize( max( int( res.size() ) + 1 - m - int( t_inv.size() ), 0 ) );
-      if( res.empty() )   res = "0";
-      string  res2 = add( res, one );
-      if( comp( mult( res2, t ), "<=", s ) )   res = move( res2 );
-      return  res;
-  }
+    constexpr string  mult( const string &s, const string &t )  {
+        int  n = s.size(),  m = t.size();
+        FPS1  a( n ), b( m );
+        for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
+        for( int i=0 ; i<m ; ++i )   b[i] = t[m - 1 - i] - '0';
+        a *= b;
+        vector<int>  c( n + m - 1 );
+        for( int i=0 ; i<n+m-1 ; ++i )   c[i] = a[i].get();
+        int  k = 0;
+        for( ; k < n+m-2 ; ++k )  {
+            c[k + 1] += c[k] / BASE;
+            c[k] %= BASE;
+        }
+        while( c[k] >= BASE )  {
+            c.push_back( c[k] / BASE );
+            c[k] %= BASE;
+            ++k;
+        }
+        string  res;
+        res.reserve( k );
+        while( k >= 0 )  {
+            res += (char)( c[k] + '0' );
+            --k;
+        }
+        return  res;
+    }
 
-  pair< string, string >  divMod( const string &s, const string &t )  {
-      string  q = div( s, t );
-      auto    m = mult( q, t );
-      string  r = sub( s, m );
-      return  { q, r };
-  }
+    constexpr string  div( const string &s, const string &t )  {
+        int  n = s.size(),  m = t.size();
+        const string  zero  = "0";
+        const string  one   = "1";
+        string  t_inv = "1";
+        string  two   = "2";
+        int  shift    = m;
+        for( int k=1 ; k<64*(n + 3) ; k*=2 )  {
+            int  pshift = shift;
+            int  len = max( min( 2 * k, n + 3 ), 1 );
+            string  tmp;
+            for( int i=0; i<min( len, m ) ; ++i )   tmp += t[i];
+	        shift -= m - tmp.size();
+	        tmp = mult( tmp, t_inv );
+	        if( (int)tmp.size() > len )  {
+	            shift -= tmp.size() - len;
+	            tmp.resize( len );
+	        }
+	        while( (int)two.size() > shift + 1 )   two.pop_back();
+	        while( (int)two.size() < shift + 1 )   two += '0';
+	        tmp    = sub( two, tmp );
+	        t_inv  = mult( t_inv, tmp );
+	        shift += pshift;
+	        if( int( t_inv.size() ) > len )  {
+                shift -= t_inv.size() - len;
+	            t_inv.resize( len );
+            }
+        }
+        string  res = mult( s, t_inv );
+        res.resize( max( int( res.size() ) + 1 - m - int( t_inv.size() ), 0 ) );
+        if( res.empty() )   res = "0";
+        string  res2 = add( res, one );
+        if( comp( mult( res2, t ), "<=", s ) )   res = move( res2 );
+        return  res;
+    }
 
-  friend ostream &operator << ( ostream &os, const BiggyHex &b )  {
-      string  ret = b.str;
-      for( auto &c : ret )  if( c > '9' )   c = c - '9' + 'A' - 1;
-      if( b.sgn == -1 )   ret.insert( ret.begin(), '-' );
-      return  os << ret;
-  }
-  friend istream &operator >> ( istream &is, BiggyHex &b )  {
-      string  t;  is >> t;
-      b = BiggyHex( t );
-      return  is;
-  }
+    constexpr pair< string, string >  divMod( const string &s, const string &t )  {
+        string  q = div( s, t );
+        auto    m = mult( q, t );
+        string  r = sub( s, m );
+        return  { q, r };
+    }
+
+    constexpr  char  &operator [] ( size_t  x )  {
+        assert( x < size() );
+        return  str[x];
+    }
 };
 
 
@@ -437,12 +443,12 @@ int  main()  {
     cin >> q;
 
     while( q-- )  {
-        string  a, b;
-        cin >> a >> b;
+        BiggyHex<16>  A, B;
+        cin >> A >> B;
 
-        BiggyHex<16>  A( a ), B( b );
+        cout << A * B << '\n';
+        cout << A + B << '\n';
         auto [Q, R] = A.divMod( B );
-
         cout << Q << " " << R << '\n';
     }
     return  0;
