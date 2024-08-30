@@ -221,9 +221,10 @@ class  BiggyHex
     int     sgn;
 
   // CONSTRUCTORS
-  BiggyHex( const string &s )  {
+  BiggyHex( const string &s, bool pre = true )  {
       str = s;
-      for( auto &c : str )   if( c > '9' )   c = c - 'A' + '9' + 1;
+      if( pre )
+          for( auto &c : str )   if( c > '9' )   c = c - 'A' + '9' + 1;
       sgn = 1;
       if( str[0] == '-' )  {
           sgn = -1;
@@ -279,10 +280,17 @@ class  BiggyHex
       return  (*this);
   }
 
+  pair<BiggyHex, BiggyHex>  divMod( BiggyHex &s, BiggyHex &t )  {
+      auto [q, r] = divMod( s.str, t.str );
+      BiggyHex  Q( q, false ), R( r, false );
+      return  { Q, R };
+  }
+
   BiggyHex  operator  + ( BiggyHex &b ) const { return BiggyHex(*this) += b; }
   BiggyHex  operator  - ( BiggyHex &b ) const { return BiggyHex(*this) -= b; }
   BiggyHex  operator  * ( BiggyHex &b ) const { return BiggyHex(*this) *= b; }
   BiggyHex  operator  / ( BiggyHex &b ) const { return BiggyHex(*this) /= b; }
+  BiggyHex  operator  % ( BiggyHex &b ) const { return divMod( (*this), b ).second; }
 
   string  add( string &s, string &t )  {
       int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
@@ -406,12 +414,6 @@ class  BiggyHex
       return  { q, r };
   }
 
-  pair<BiggyHex, BiggyHex>  divMod( BiggyHex &s, BiggyHex &t )  {
-      auto [q, r] = divMod( s.str, t.str );
-      BiggyHex  Q( q ),  R( r );
-      return  { Q, R };
-  }
-
   friend ostream &operator << ( ostream &os, const BiggyHex &b )  {
       string  ret = b.str;
       for( auto &c : ret )  if( c > '9' )   c = c - '9' + 'A' - 1;
@@ -438,10 +440,9 @@ int  main()  {
         cin >> a >> b;
 
         BiggyHex<16>  A( a ), B( b );
-
         auto [Q, R] = A.divMod( A, B );
 
-        cout << Q <<  " " << R << '\n';
+        cout << Q << " " << R << '\n';
     }
     return  0;
 }
