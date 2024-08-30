@@ -212,8 +212,7 @@ class FormalPowerSeries
 
 using  FPS1 = FormalPowerSeries< Mint<998244353> >;
 
-
-string  add( const string& s, const string& t, int b = 10 )  {
+string  add( const string &s, const string &t, int b = 10 )  {
 	int  i = s.size() - 1,  j = t.size() - 1,  c = 0;
 	string res;
 	while( i >= 0 || j >= 0 || c > 0 )  {
@@ -226,7 +225,7 @@ string  add( const string& s, const string& t, int b = 10 )  {
 	return  res;
 }
 
-string  sub( const string& s, const string& t, int b = 10 )  {
+string  sub( const string &s, const string &t, int b = 10 )  {
 	int  i = s.size() - 1,  j = t.size() - 1,  c = 0;
 	string  res;
 	while( i >= 0 )  {
@@ -250,7 +249,7 @@ string  sub( const string& s, const string& t, int b = 10 )  {
 	return  res;
 }
 
-bool  comp( const string& s, const string& op, const string& t )  {
+bool  comp( const string &s, const string &op, const string &t )  {
 	int  n = s.size(),  m = t.size();
 	if (op[0] == '=') return s == t;
 	if (op[0] == '<') {
@@ -265,8 +264,8 @@ bool  comp( const string& s, const string& op, const string& t )  {
 	}
 }
 
-string  mult( const string& s, const string& t, int base = 10 )  {
-	if( s == "0" || t == "0" )  return "0";
+string  mult( const string &s, const string &t, int base = 10 )  {
+	if( s == "0" || t == "0" )   return  "0";
 	int  n = s.size(),  m = t.size();
 	FPS1  a( n ), b( m );
 	for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
@@ -290,16 +289,14 @@ string  mult( const string& s, const string& t, int base = 10 )  {
 		res += (char)( c[k] + '0' );
 		--k;
 	}
-	return res;
+	return  res;
 }
 
-string  div( string s, string t, int B = 10 )  {
+string  div( const string &s, const string &t, int B = 10 )  {
 	int  n = s.size(),  m = t.size();
-
 	string  t_inv = "1";
 	string  two   = "2";
 	int  shift    = m;
-
 	for( int k=1 ; k<64*(n + 3) ; k*=2 )  {
 		int  pshift = shift;
 		int  len = max( min( 2 * k, n + 3 ), 1 );
@@ -321,16 +318,15 @@ string  div( string s, string t, int B = 10 )  {
 			t_inv.resize( len );
 		}
 	}
-
 	string  res = mult( s, t_inv, B );
-	res.resize( max( int(res.size()) + 1 - m - int(t_inv.size()), 0 ) );
+	res.resize( max( int( res.size() ) + 1 - m - int( t_inv.size() ), 0 ) );
 	if( res.empty() )   res = "0";
 	string  res2 = add( res, "1", B );
 	if( comp( mult( res2, t, B ), "<=", s ) )   res = move( res2 );
 	return  res;
 }
 
-pair<string, string>  modDiv( const string& s, const string& t, int base = 10 )  {
+pair<string, string>  modDiv( const string &s, const string &t, int base = 10 )  {
 	string  q = div( s, t, base );
 	string  r = sub( s, mult( q, t, base ), base );
 	return { q, r };
@@ -373,7 +369,7 @@ int  main()  {
 		for( auto &c : a )  if( c > '9' )   c = c - 'A' + '9' + 1;
 		for( auto &c : b )  if( c > '9' )   c = c - 'A' + '9' + 1;
 
-		auto  [q, r] = modDiv( a, b, 16 );
+		auto [q, r] = modDiv( a, b, 16 );
 
 		for( auto &c : q )  if( c > '9' )   c = c - '9' + 'A' - 1;
 		for( auto &c : r )  if( c > '9' )   c = c - '9' + 'A' - 1;
