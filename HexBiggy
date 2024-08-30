@@ -280,8 +280,8 @@ class  BiggyHex
       return  (*this);
   }
 
-  pair<BiggyHex, BiggyHex>  divMod( BiggyHex &s, BiggyHex &t )  {
-      auto [q, r] = divMod( s.str, t.str );
+  pair<BiggyHex, BiggyHex>  divMod( BiggyHex &t )  {
+      auto [q, r] = divMod( str, t.str );
       BiggyHex  Q( q, false ), R( r, false );
       return  { Q, R };
   }
@@ -440,7 +440,7 @@ int  main()  {
         cin >> a >> b;
 
         BiggyHex<16>  A( a ), B( b );
-        auto [Q, R] = A.divMod( A, B );
+        auto [Q, R] = A.divMod( B );
 
         cout << Q << " " << R << '\n';
     }
