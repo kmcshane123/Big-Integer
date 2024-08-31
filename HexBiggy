@@ -1,5 +1,11 @@
 // MAINLY ecottea's CODE
 // https://judge.yosupo.jp/submission/199139
+
+// SOLVES THE TEST CASES AT
+// https://judge.yosupo.jp/problem/addition_of_hex_big_integers
+// https://judge.yosupo.jp/problem/multiplication_of_hex_big_integers
+// https://judge.yosupo.jp/problem/division_of_hex_big_integers
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
