@@ -309,6 +309,7 @@ class  BiggyHex
     constexpr BiggyHex  operator  / ( BiggyHex &b ) const { return BiggyHex(*this) /= b; }
     constexpr BiggyHex  operator  % ( BiggyHex &b ) const { return divMod( (*this), b ).second; }
 
+    // INPUT AND OUTPUT
     friend ostream &operator << ( ostream &os, const BiggyHex &b )  {
         string  ret = b.str;
         for( auto &c : ret )  if( c > '9' )   c = c - '9' + 'A' - 1;
