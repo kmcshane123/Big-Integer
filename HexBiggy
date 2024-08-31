@@ -235,6 +235,22 @@ class  BiggyHex
     }
 
   public:
+    // COMPARISON OPERATORS
+    bool  operator < ( const BiggyHex &b ) const  {
+        if( sgn != b.sgn )   return  sgn < b.sgn;
+        if( size() != b.size() )
+            return  (int)size() * sgn < (int)b.size() * b.sgn;
+        for( int i=(int)size() - 1 ; i>=0 ; --i )
+            if( str[i] != b[i] )   return  str[i] * sgn < b[i] * b.sgn;
+        return  false;
+    }
+    bool  operator >  ( const BiggyHex &b ) const  { return  b < *this; }
+    bool  operator <= ( const BiggyHex &b ) const  { return  !( b < *this ); }
+    bool  operator >= ( const BiggyHex &b ) const  { return  !( *this < b ); }
+    bool  operator == ( const BiggyHex &b ) const  {
+                        return  !( *this < b )  &&  !( b < *this ); }
+    bool  operator != ( const BiggyHex &b ) const  { return *this < b || b < *this; }
+
     // ARITMETIC OPERATORS
     constexpr  size_t  size() { return str.size(); }
 
@@ -242,13 +258,13 @@ class  BiggyHex
         if( sgn == 1  &&  b.sgn == 1 )         str = add( str, b.str );
         else if( sgn == -1  &&  b.sgn == -1 )  str = add( str, b.str );
         else if( sgn ==  1  &&  b.sgn == -1 )
-            if( (*this) < b )  {
+            if( lt( str, b.str ) )  {
                 str = sub( b.str, str );
                 sgn = -1;
             }
             else  str = sub( str, b.str );
         else  {
-            if( (*this) > b )  {
+            if( gt( str, b.str ) )  {
                 str = sub( str, b.str );
                 sgn = -1;
             }
@@ -306,38 +322,19 @@ class  BiggyHex
     }
 
   private:
-    // COMPARISON OPERATORS FOR BiggyHex (COMPARE ABSOLUTE VALUES)
-    bool  operator < ( BiggyHex &b )  {
-        if( size() != b.size() )
-            return  (int)size() < (int)b.size();
-        for( int i=0 ; i<(int)size() ; ++i )
-            if( str[i] != b[i] )
-                return  str[i] < b[i];
+    // COMPARISON FOR STRINGS (COMPARE ABSOLUTE VALUES)
+    bool  lt( const string &s, const string &t )  {
+        if( s.size() != t.size() )
+            return  (int)s.size() < (int)t.size();
+        for( int i=0 ; i<(int)s.size() ; ++i )
+            if( s[i] != t[i] )   return  s[i] < t[i];
         return  false;
     }
-
-    bool  operator >  ( BiggyHex &b )  { return  b < *this; }
-    bool  operator <= ( BiggyHex &b )  { return  !( b < *this ); }
-    bool  operator >= ( BiggyHex &b )  { return  !( *this < b ); }
-    bool  operator == ( BiggyHex &b )  {
-                        return  !( *this < b )  &&  !( b < *this ); }
-    bool  operator != ( BiggyHex &b )  { return *this < b || b < *this; }
-
-    // COMPARISON FOR STRINGS (COMPARE ABSOLUTE VALUES)
-    bool  comp( const string &s, const string &op, const string &t )  {
-        int  n = (int)s.size(),  m = (int)t.size();
-        if( op[0] == '=' )   return s == t;
-        if( op[0] == '<' )  {
-            if( n < m )   return true;
-            if( n > m )   return false;
-            return  op == "<" ? ( s < t ) : ( s <= t );
-        }
-        else  {
-            if( n > m )   return true;
-            if( n < m )   return false;
-            return  op == ">" ? ( s > t ) : ( s >= t );
-        }
-    }
+    bool  gt( const string &s, const string &t )  { return  lt( t, s ); }
+    bool  le( const string &s, const string &t )  { return  !lt( t, s ); }
+    bool  ge( const string &s, const string &t )  { return  !lt( s, t ); }
+    bool  eq( const string &s, const string &t )  { return  !lt( s, t )  &&  !lt( t, s ); }
+    bool  ne( const string &s, const string &t )  { return  lt( s, t )  ||  lt( t, s ); }
 
     // ARITHMETIC OPERATIONS ON STRINGS
     constexpr string  add( const string &s, const string &t )  {
@@ -436,7 +433,7 @@ class  BiggyHex
         res.resize( max( int( res.size() ) + 1 - m - int( t_inv.size() ), 0 ) );
         if( res.empty() )   res = "0";
         string  res2 = add( res, one );
-        if( comp( mult( res2, t ), "<=", s ) )   res = move( res2 );
+        if( le( mult( res2, t ), s ) )   res = move( res2 );
         return  res;
     }
 
