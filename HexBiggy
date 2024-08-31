@@ -238,17 +238,17 @@ class  BiggyHex
     // ARITMETIC OPERATORS
     constexpr  size_t  size() { return str.size(); }
 
-    constexpr BiggyHex  &operator += ( const BiggyHex &b )  {
+    constexpr BiggyHex  &operator += ( BiggyHex &b )  {
         if( sgn == 1  &&  b.sgn == 1 )         str = add( str, b.str );
         else if( sgn == -1  &&  b.sgn == -1 )  str = add( str, b.str );
         else if( sgn ==  1  &&  b.sgn == -1 )
-            if( comp( str, "<", b.str ) )  {
+            if( (*this) < b )  {
                 str = sub( b.str, str );
                 sgn = -1;
             }
             else  str = sub( str, b.str );
         else  {
-            if( comp( str, ">", b.str ) )  {
+            if( (*this) > b )  {
                 str = sub( str, b.str );
                 sgn = -1;
             }
@@ -306,6 +306,40 @@ class  BiggyHex
     }
 
   private:
+    // COMPARISON OPERATORS FOR BiggyHex (COMPARE ABSOLUTE VALUES)
+    bool  operator < ( BiggyHex &b )  {
+        if( size() != b.size() )
+            return  (int)size() < (int)b.size();
+        for( int i=0 ; i<(int)size() ; ++i )
+            if( str[i] != b[i] )
+                return  str[i] < b[i];
+        return  false;
+    }
+
+    bool  operator >  ( BiggyHex &b )  { return  b < *this; }
+    bool  operator <= ( BiggyHex &b )  { return  !( b < *this ); }
+    bool  operator >= ( BiggyHex &b )  { return  !( *this < b ); }
+    bool  operator == ( BiggyHex &b )  {
+                        return  !( *this < b )  &&  !( b < *this ); }
+    bool  operator != ( BiggyHex &b )  { return *this < b || b < *this; }
+
+    // COMPARISON FOR STRINGS (COMPARE ABSOLUTE VALUES)
+    bool  comp( const string &s, const string &op, const string &t )  {
+        int  n = (int)s.size(),  m = (int)t.size();
+        if( op[0] == '=' )   return s == t;
+        if( op[0] == '<' )  {
+            if( n < m )   return true;
+            if( n > m )   return false;
+            return  op == "<" ? ( s < t ) : ( s <= t );
+        }
+        else  {
+            if( n > m )   return true;
+            if( n < m )   return false;
+            return  op == ">" ? ( s > t ) : ( s >= t );
+        }
+    }
+
+    // ARITHMETIC OPERATIONS ON STRINGS
     constexpr string  add( const string &s, const string &t )  {
         int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
         string res;
@@ -341,21 +375,6 @@ class  BiggyHex
         if( k == -1 )  res.push_back( '0' );
         reverse( res.begin(), res.end() );
         return  res;
-    }
-
-    constexpr bool  comp( const string &s, const string &op, const string &t )  {
-         int  n = (int)s.size(),  m = (int)t.size();
-         if( op[0] == '=' )   return s == t;
-         if( op[0] == '<' )  {
-             if( n < m )   return true;
-             if( n > m )   return false;
-             return  op == "<" ? ( s < t ) : ( s <= t );
-        }
-        else  {
-            if( n > m )   return true;
-            if( n < m )   return false;
-            return  op == ">" ? ( s > t ) : ( s >= t );
-        }
     }
 
     constexpr string  mult( const string &s, const string &t )  {
@@ -446,8 +465,8 @@ int  main()  {
         BiggyHex<16>  A, B;
         cin >> A >> B;
 
-        cout << A * B << '\n';
-        cout << A + B << '\n';
+//        cout << A * B << '\n';
+//        cout << A + B << '\n';
         auto [Q, R] = A.divMod( B );
         cout << Q << " " << R << '\n';
     }
