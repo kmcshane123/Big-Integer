@@ -237,10 +237,10 @@ namespace  garnerBiggy
   using  FPS4 = FormalPowerSeries< Mint<M4> >;
   using  FPS5 = FormalPowerSeries< Mint<M5> >;
 
-  vector<vector<u32>>  table_coeff;
-  vector<u32>          table_coeffinv;
+  static vector<vector<u32>>  table_coeff;
+  static vector<u32>          table_coeffinv;
 
-    void setUpGarner( u32 nmods )  {
+    static void setUpGarner( u32 nmods )  {
         NMODS = nmods;
         table_coeff.assign( nmods + 1, vector<u32>( nmods, 1 ) );
         for( size_t j=0 ; j<nmods ; ++j )  {
@@ -253,7 +253,7 @@ namespace  garnerBiggy
             table_coeffinv[i] = invm( table_coeff[i][i], mods[i] );
     }
 
-    u64  garner( const vector<u32> &x )  {
+    static u64  garner( const vector<u32> &x )  {
         size_t  nmods = NMODS;
         vector<u32>  table_const( nmods );
         u64  res = 0,  res_coeff = 1;
@@ -267,7 +267,7 @@ namespace  garnerBiggy
         return  res;
     }
 
-    vector<u64>  bigMult( const vector<u64> &a, const vector<u64> &b )  {
+    static vector<u64>  bigMult( const vector<u64> &a, const vector<u64> &b )  {
         size_t  n = a.size(),  m = b.size();
 
         FPS1  a1( n ),  b1( m );
@@ -446,7 +446,7 @@ class  Biggy  {
 
     Biggy  operator % ( const Biggy &x ) const { return  (*this) - x*( (*this)/x ); }
 
-    friend  pair<Biggy, Biggy>  divMod( const Biggy &x, const Biggy &y )  {
+    static pair<Biggy, Biggy>  divMod( const Biggy &x, const Biggy &y )  {
         Biggy  Q = x/y;
         return  make_pair( Q, x - Q*y );
     }
@@ -562,8 +562,8 @@ int main()  {
 //        auto [u, v] = divMod( a, b );
 //        cout << u << " " << v << '\n';
 
-//        cout << a * b << '\n';
-        cout << a + b << '\n';
+        cout << a * b << '\n';
+//        cout << a + b << '\n';
     }
 
     return  0;
