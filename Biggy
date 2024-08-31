@@ -354,7 +354,7 @@ class  Biggy  {
             return  (int)size() * sgn < (int)b.size() * b.sgn;
         for( int i=(int)size() - 1 ; i>=0 ; --i )
             if( v[i] != b[i] )
-                return  v[i] * sgn < b[i] * sgn;
+                return  v[i] * sgn < b[i] * b.sgn;
         return  false;
     }
     bool  operator >  ( const Biggy &b ) const  { return  b < *this; }
