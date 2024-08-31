@@ -329,21 +329,21 @@ class  BiggyHex
 
   private:
     // COMPARISON FOR STRINGS (COMPARE ABSOLUTE VALUES)
-    bool  lt( const string &s, const string &t )  {
+    static constexpr bool  lt( const string &s, const string &t )  {
         if( s.size() != t.size() )
             return  (int)s.size() < (int)t.size();
         for( int i=0 ; i<(int)s.size() ; ++i )
             if( s[i] != t[i] )   return  s[i] < t[i];
         return  false;
     }
-    bool  gt( const string &s, const string &t )  { return  lt( t, s ); }
-    bool  le( const string &s, const string &t )  { return  !lt( t, s ); }
-    bool  ge( const string &s, const string &t )  { return  !lt( s, t ); }
-    bool  eq( const string &s, const string &t )  { return  !lt( s, t )  &&  !lt( t, s ); }
-    bool  ne( const string &s, const string &t )  { return  lt( s, t )  ||  lt( t, s ); }
+    static bool  gt( const string &s, const string &t )  { return  lt( t, s ); }
+    static bool  le( const string &s, const string &t )  { return  !lt( t, s ); }
+    static bool  ge( const string &s, const string &t )  { return  !lt( s, t ); }
+    static bool  eq( const string &s, const string &t )  { return  !lt( s, t )  &&  !lt( t, s ); }
+    static bool  ne( const string &s, const string &t )  { return  lt( s, t )  ||  lt( t, s ); }
 
     // ARITHMETIC OPERATIONS ON STRINGS
-    constexpr string  add( const string &s, const string &t )  {
+    static constexpr string  add( const string &s, const string &t )  {
         int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
         string res;
         while( i >= 0 || j >= 0 || c > 0 )  {
@@ -356,7 +356,7 @@ class  BiggyHex
         return  res;
     }
 
-    constexpr string  sub( const string& s, const string& t )  {
+    static constexpr string  sub( const string& s, const string& t )  {
         int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
         string  res;
         while( i >= 0 )  {
@@ -380,7 +380,7 @@ class  BiggyHex
         return  res;
     }
 
-    constexpr string  mult( const string &s, const string &t )  {
+    static constexpr string  mult( const string &s, const string &t )  {
         int  n = s.size(),  m = t.size();
         FPS1  a( n ), b( m );
         for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
@@ -407,7 +407,7 @@ class  BiggyHex
         return  res;
     }
 
-    constexpr string  div( const string &s, const string &t )  {
+    static constexpr string  div( const string &s, const string &t )  {
         int  n = s.size(),  m = t.size();
         const string  zero  = "0";
         const string  one   = "1";
@@ -443,7 +443,7 @@ class  BiggyHex
         return  res;
     }
 
-    constexpr pair< string, string >  divMod( const string &s, const string &t )  {
+    static constexpr pair< string, string >  divMod( const string &s, const string &t )  {
         string  q = div( s, t );
         auto    m = mult( q, t );
         string  r = sub( s, m );
@@ -468,8 +468,8 @@ int  main()  {
         BiggyHex<16>  A, B;
         cin >> A >> B;
 
-//        cout << A * B << '\n';
-        cout << A + B << '\n';
+        cout << A * B << '\n';
+//        cout << A + B << '\n';
 //        auto [Q, R] = A.divMod( B );
 //        cout << Q << " " << R << '\n';
     }
