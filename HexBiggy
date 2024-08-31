@@ -254,7 +254,7 @@ class  BiggyHex
     // ARITMETIC OPERATORS
     constexpr  size_t  size() { return str.size(); }
 
-    constexpr BiggyHex  &operator += ( BiggyHex &b )  {
+    constexpr BiggyHex  &operator += ( const BiggyHex &b )  {
         if( sgn == 1  &&  b.sgn == 1 )         str = add( str, b.str );
         else if( sgn == -1  &&  b.sgn == -1 )  str = add( str, b.str );
         else if( sgn ==  1  &&  b.sgn == -1 )
@@ -299,7 +299,7 @@ class  BiggyHex
 
     constexpr pair<BiggyHex, BiggyHex>  divMod( const BiggyHex &t )  {
         auto [q, r] = divMod( str, t.str );
-        BiggyHex  Q( q, false ), R( r, false );
+        BiggyHex  Q( q, false ),  R( r, false );
         return  { Q, R };
     }
 
@@ -309,7 +309,6 @@ class  BiggyHex
     constexpr BiggyHex  operator  / ( BiggyHex &b ) const { return BiggyHex(*this) /= b; }
     constexpr BiggyHex  operator  % ( BiggyHex &b ) const { return divMod( (*this), b ).second; }
 
-    // INPUT AND OUTPUT
     friend ostream &operator << ( ostream &os, const BiggyHex &b )  {
         string  ret = b.str;
         for( auto &c : ret )  if( c > '9' )   c = c - '9' + 'A' - 1;
