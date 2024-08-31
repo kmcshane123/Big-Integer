@@ -355,7 +355,7 @@ class  BiggyHex
 
     constexpr string  sub( const string& s, const string& t )  {
         int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
-       string  res;
+        string  res;
         while( i >= 0 )  {
             int  vs = (s[i] - '0') - c;
             int  vt = j >= 0 ? t[j] - '0' : 0;
@@ -415,7 +415,7 @@ class  BiggyHex
             int  pshift = shift;
             int  len = max( min( 2 * k, n + 3 ), 1 );
             string  tmp;
-            for( int i=0; i<min( len, m ) ; ++i )   tmp += t[i];
+            for( int i=0 ; i<min( len, m ) ; ++i )   tmp += t[i];
 	        shift -= m - tmp.size();
 	        tmp = mult( tmp, t_inv );
 	        if( (int)tmp.size() > len )  {
@@ -466,9 +466,9 @@ int  main()  {
         cin >> A >> B;
 
 //        cout << A * B << '\n';
-//        cout << A + B << '\n';
-        auto [Q, R] = A.divMod( B );
-        cout << Q << " " << R << '\n';
+        cout << A + B << '\n';
+//        auto [Q, R] = A.divMod( B );
+//        cout << Q << " " << R << '\n';
     }
     return  0;
 }
