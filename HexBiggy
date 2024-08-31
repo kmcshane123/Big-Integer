@@ -468,10 +468,10 @@ int  main()  {
         BiggyHex<16>  A, B;
         cin >> A >> B;
 
-        cout << A * B << '\n';
+//        cout << A * B << '\n';
 //        cout << A + B << '\n';
-//        auto [Q, R] = A.divMod( B );
-//        cout << Q << " " << R << '\n';
+        auto [Q, R] = A.divMod( B );
+        cout << Q << " " << R << '\n';
     }
     return  0;
 }
