@@ -242,7 +242,7 @@ class  BiggyHex
 
   public:
     // COMPARISON OPERATORS
-    bool  operator < ( const BiggyHex &b ) const  {
+    bool  operator < ( BiggyHex &b )  {
         if( sgn != b.sgn )   return  sgn < b.sgn;
         if( size() != b.size() )
             return  (int)size() * sgn < (int)b.size() * b.sgn;
@@ -250,12 +250,12 @@ class  BiggyHex
             if( str[i] != b[i] )   return  str[i] * sgn < b[i] * b.sgn;
         return  false;
     }
-    bool  operator >  ( const BiggyHex &b ) const  { return  b < *this; }
-    bool  operator <= ( const BiggyHex &b ) const  { return  !( b < *this ); }
-    bool  operator >= ( const BiggyHex &b ) const  { return  !( *this < b ); }
-    bool  operator == ( const BiggyHex &b ) const  {
+    bool  operator >  ( BiggyHex &b )  { return  b < *this; }
+    bool  operator <= ( BiggyHex &b )  { return  !( b < *this ); }
+    bool  operator >= ( BiggyHex &b )  { return  !( *this < b ); }
+    bool  operator == ( BiggyHex &b )  {
                         return  !( *this < b )  &&  !( b < *this ); }
-    bool  operator != ( const BiggyHex &b ) const  { return *this < b || b < *this; }
+    bool  operator != ( BiggyHex &b )  { return *this < b || b < *this; }
 
     // ARITMETIC OPERATORS
     constexpr  size_t  size() { return str.size(); }
