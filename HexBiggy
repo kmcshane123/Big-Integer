@@ -284,7 +284,7 @@ class  BiggyHex
 
     constexpr BiggyHex  &operator *= ( const BiggyHex &b )  {
         if( str == "0" || b.str == "0" )  { str = "0";  sgn = 1;  return (*this); }
-        str = mult( str, b.str );
+        str = mul( str, b.str );
         sgn = ( sgn == b.sgn ) ? 1 : -1;
         return  (*this);
     }
@@ -360,7 +360,7 @@ class  BiggyHex
         int  i = (int)s.size() - 1,  j = (int)t.size() - 1,  c = 0;
         string  res;
         while( i >= 0 )  {
-            int  vs = (s[i] - '0') - c;
+            int  vs = ( s[i] - '0' ) - c;
             int  vt = j >= 0 ? t[j] - '0' : 0;
             c = 0;
             if( vs < vt )  {
@@ -368,7 +368,7 @@ class  BiggyHex
 	            c = 1;
 	        }
 	        res.push_back( '0' + vs - vt );
-	        --i; --j;
+	        --i;  --j;
         }
         int  k = res.size() - 1;
         while( k >= 0 && res[k] == '0' ) {
@@ -380,7 +380,7 @@ class  BiggyHex
         return  res;
     }
 
-    static constexpr string  mult( const string &s, const string &t )  {
+    static constexpr string  mul( const string &s, const string &t )  {
         int  n = s.size(),  m = t.size();
         FPS1  a( n ), b( m );
         for( int i=0 ; i<n ; ++i )   a[i] = s[n - 1 - i] - '0';
@@ -395,22 +395,19 @@ class  BiggyHex
         }
         while( c[k] >= BASE )  {
             c.push_back( c[k] / BASE );
-            c[k] %= BASE;
-            ++k;
+            c[k++] %= BASE;
         }
         string  res;
         res.reserve( k );
-        while( k >= 0 )  {
-            res += (char)( c[k] + '0' );
-            --k;
-        }
+        while( k >= 0 )   res += char( c[k--] + '0' );
         return  res;
     }
 
+    // div IS HARDCODED FOR BASE 16 ( NEWTON'S METHOD )
     static constexpr string  div( const string &s, const string &t )  {
         int  n = s.size(),  m = t.size();
-        const string  zero  = "0";
-        const string  one   = "1";
+        const string  zero = "0";
+        const string  one  = "1";
         string  t_inv = "1";
         string  two   = "2";
         int  shift    = m;
@@ -420,7 +417,7 @@ class  BiggyHex
             string  tmp;
             for( int i=0 ; i<min( len, m ) ; ++i )   tmp += t[i];
 	        shift -= m - tmp.size();
-	        tmp = mult( tmp, t_inv );
+	        tmp = mul( tmp, t_inv );
 	        if( (int)tmp.size() > len )  {
 	            shift -= tmp.size() - len;
 	            tmp.resize( len );
@@ -428,32 +425,29 @@ class  BiggyHex
 	        while( (int)two.size() > shift + 1 )   two.pop_back();
 	        while( (int)two.size() < shift + 1 )   two += '0';
 	        tmp    = sub( two, tmp );
-	        t_inv  = mult( t_inv, tmp );
+	        t_inv  = mul( t_inv, tmp );
 	        shift += pshift;
 	        if( int( t_inv.size() ) > len )  {
                 shift -= t_inv.size() - len;
 	            t_inv.resize( len );
             }
         }
-        string  res = mult( s, t_inv );
+        string  res = mul( s, t_inv );
         res.resize( max( int( res.size() ) + 1 - m - int( t_inv.size() ), 0 ) );
         if( res.empty() )   res = "0";
         string  res2 = add( res, one );
-        if( le( mult( res2, t ), s ) )   res = move( res2 );
+        if( le( mul( res2, t ), s ) )   res = move( res2 );
         return  res;
     }
 
     static constexpr pair< string, string >  divMod( const string &s, const string &t )  {
         string  q = div( s, t );
-        auto    m = mult( q, t );
+        auto    m = mul( q, t );
         string  r = sub( s, m );
         return  { q, r };
     }
 
-    constexpr  char  &operator [] ( size_t  x )  {
-        assert( x < size() );
-        return  str[x];
-    }
+    constexpr char  &operator [] ( size_t  k )  { assert( k < size() );  return  str[k]; }
 };
 
 
