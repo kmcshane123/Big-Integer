@@ -312,9 +312,10 @@ namespace  garnerBiggy
         return  res;
     }
 };
-using namespace  garnerBiggy;
 
 class  Biggy  {
+    using  u64 = uint64_t;
+
   public:
     inline static constexpr int  base_dig = 6;
     inline static constexpr u64  base     = 1000000;
@@ -399,8 +400,13 @@ class  Biggy  {
     }
 
     Biggy  operator * ( const Biggy &b ) const  {
+        static bool  initialized = false;
+        if( !initialized )  {
+            garnerBiggy::setUpGarner( 2 );  // SET NUMBER PRIMES HERE
+            initialized = true;
+        }
         if( !size() || !b.size() )   return Biggy( 0 );
-        auto  garner = bigMult( v, b.v );
+        auto  garner = garnerBiggy::bigMult( v, b.v );
         vector<u64>  res;
         u64  carry = 0;
         for( size_t i=0 ; i<garner.size() ; ++i  )  {
@@ -549,8 +555,6 @@ Biggy  operator - ( int64_t myInt, Biggy& x )        { return -x + myInt; }
 int main()  {
     cin.tie( 0 );
     cin.sync_with_stdio( 0 );
-
-    setUpGarner( 2 );  // REQUIRED FOR MULTIPLICATION AND DIVISION
 
     int  q;
     cin >> q;
