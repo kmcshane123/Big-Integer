@@ -267,13 +267,11 @@ namespace  garnerBiggy
         return  res;
     }
 
-    static vector<u64>  bigMult( const vector<u64> &a, const vector<u64> &b )  {
+    static vector<u64>  convolve( const vector<u64> &a, const vector<u64> &b )  {
         size_t  n = a.size(),  m = b.size();
 
-        FPS1  a1( n ),  b1( m );
-        FPS2  a2( n ),  b2( m );
-        FPS3  a3( n ),  b3( m );
-        FPS4  a4( n ),  b4( m );
+        FPS1  a1( n ),  b1( m );    FPS2  a2( n ),  b2( m );
+        FPS3  a3( n ),  b3( m );    FPS4  a4( n ),  b4( m );
         FPS5  a5( n ),  b5( m );
 
         for( size_t i=0 ; i<a.size() ; ++i )  {
@@ -406,7 +404,7 @@ class  Biggy  {
             initialized = true;
         }
         if( !size() || !b.size() )   return Biggy( 0 );
-        auto  garner = garnerBiggy::bigMult( v, b.v );
+        auto  garner = garnerBiggy::convolve( v, b.v );
         vector<u64>  res;
         u64  carry = 0;
         for( size_t i=0 ; i<garner.size() ; ++i  )  {
