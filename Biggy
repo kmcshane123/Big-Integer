@@ -228,7 +228,8 @@ namespace  garnerBiggy
 
   u32  invm( u32 a, u32 m )  {	return  powm( a, m - 2, m ); }
 
-  static constexpr u32  M1 = 962592769, M2 = 975175681, M3 = 976224257, M4 = 985661441, M5 = 998244353;
+  static constexpr u32  M1 = 962592769, M2 = 975175681, M3 = 976224257,
+                        M4 = 985661441, M5 = 998244353;
   static constexpr array<u32, 5>  mods{ M1, M2, M3, M4, M5 };
 
   using  FPS1 = FormalPowerSeries< Mint<M1> >;
@@ -277,21 +278,21 @@ namespace  garnerBiggy
         for( size_t i=0 ; i<a.size() ; ++i )  {
             u64  x = a[i];
             switch( NMODS )  {
-              case  5:  a5[i] = x % M5;
-              case  4:  a4[i] = x % M4;
-              case  3:  a3[i] = x % M3;
-              case  2:  a2[i] = x % M2;
-              case  1:  a1[i] = x % M1;
+              case  5:  a5[i] = Mint<M5>( x );
+              case  4:  a4[i] = Mint<M4>( x );
+              case  3:  a3[i] = Mint<M3>( x );
+              case  2:  a2[i] = Mint<M2>( x );
+              case  1:  a1[i] = Mint<M1>( x );
             }
         }
         for( size_t i=0 ; i<b.size() ; ++i )  {
             u64  x = b[i];
             switch( NMODS )  {
-              case  5:  b5[i] = x % M5;
-              case  4:  b4[i] = x % M4;
-              case  3:  b3[i] = x % M3;
-              case  2:  b2[i] = x % M2;
-              case  1:  b1[i] = x % M1;
+              case  5:  b5[i] = Mint<M5>( x );
+              case  4:  b4[i] = Mint<M4>( x );
+              case  3:  b3[i] = Mint<M3>( x );
+              case  2:  b2[i] = Mint<M2>( x );
+              case  1:  b1[i] = Mint<M1>( x );
             }
         }
 
