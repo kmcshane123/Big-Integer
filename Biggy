@@ -451,9 +451,9 @@ class  Biggy  {
 
     Biggy  operator % ( const Biggy &x ) const { return  (*this) - x*( (*this)/x ); }
 
-    static pair<Biggy, Biggy>  divMod( const Biggy &x, const Biggy &y )  {
-        Biggy  Q = x/y;
-        return  make_pair( Q, x - Q*y );
+    pair<Biggy, Biggy>  divMod( const Biggy &y )  {
+        Biggy  Q = (*this) / y;
+        return  make_pair( Q, (*this) - Q*y );
     }
 
     Biggy  &operator += ( const Biggy &b )  { *this = *this + b;  return *this; }
@@ -562,10 +562,10 @@ int main()  {
         Biggy  a, b;
         cin >> a >> b;
 
-//        auto [u, v] = divMod( a, b );
-//        cout << u << " " << v << '\n';
+        auto [u, v] = a.divMod( b );
+        cout << u << " " << v << '\n';
 
-        cout << a * b << '\n';
+//        cout << a * b << '\n';
 //        cout << a + b << '\n';
     }
 
