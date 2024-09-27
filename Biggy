@@ -560,17 +560,52 @@ Biggy  operator * ( int64_t myInt, Biggy const& x )  { return  x * myInt; }
 Biggy  operator + ( int64_t myInt, Biggy const& x )  { return  x + myInt; }
 Biggy  operator - ( int64_t myInt, Biggy& x )        { return -x + myInt; }
 
+// FINDS BEST FAREY APPROX TO SQRT n WITH DENOM AT MOST D
+pair<Biggy, Biggy>  bestApproxSqrt( Biggy n, Biggy D )  {
+    Biggy  s = n.isqrt();
+    if( s * s == n )    return { s, Biggy( 1 ) };
+    pair<Biggy, Biggy>  left = { s, Biggy( 1 ) };
+    pair<Biggy, Biggy>  rght = { Biggy( s + 1 ), Biggy( 1 ) };
 
-int main()  {
-    cin.tie( 0 );
-    cin.sync_with_stdio( 0 );
-
-    Biggy  x( "1234567823456785557554055555555555555555555555555555555"s );
-    Biggy  sqrtx = x.isqrt();
-    cout << sqrtx << '\n';
-    cout << sqrtx * sqrtx << '\n';
-    ++sqrtx;
-    cout << sqrtx * sqrtx << '\n';
-
-    return  0;
+    while( true )  {
+        if( left.second + rght.second > D )   break;
+        pair<Biggy, Biggy>  m = { left.first + rght.first, left.second + rght.second };
+        Biggy  A = m.first * m.first;
+        Biggy  B = n * m.second * m.second;
+        if( A == B )      return  m;
+        else if( A < B )  left = m;
+        else              rght = m;
+    }
+    auto [la, lb] = left;
+    auto [ra, rb] = rght;
+    Biggy  x = la * rb + ra * lb;
+    if( x * x > 4 * n * lb * rb * lb * rb )   return  left;
+    return  rght;
 }
+
+
+int  main()  {
+    ios::sync_with_stdio( 0 );
+    cin.tie( 0 );
+
+    i64  x, y;
+    cin >> x >> y;
+
+    Biggy  M( x ), B( y ), ans( 0 );
+    i64  j = 2,  j2 = 4;
+
+    for( i64 i=2 ; i<=x ; ++i )  {
+        if( i == j2 )  {  // DO NOT ADD IF PERFECT SQUARE
+            ++j;  j2 = j*j;
+            continue;
+        }
+        auto  [a, b] = bestApproxSqrt( Biggy( i ), B );
+        ans += b;
+    }
+    cout << ans << '\n';
+
+    return 0;
+}
+// SOLVES PROJECT EULER 192 IN 2.5 MINUTES
+// INPUT  100000 1000000000000
+// OUTPUT 57060635927998347
