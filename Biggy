@@ -492,6 +492,16 @@ class  Biggy  {
         return  m;
     }
 
+    Biggy  isqrt()  {
+        Biggy  left( 1 ), right( *this / 2 ), v( 1 );
+        while( left <= right )  {
+            Biggy  mid = ( left + right ) / 2;
+            if( mid * mid <= *this )  { v = mid;  left = ++mid; }
+            else  right = --mid;
+        }
+        return  v;
+    }
+
     Biggy  operator / ( i64 val )  { Biggy  res = *this;  return  res /= val; }
     Biggy  operator * ( i64 val )  { Biggy  res = *this;  return  res *= val; }
 
@@ -555,19 +565,12 @@ int main()  {
     cin.tie( 0 );
     cin.sync_with_stdio( 0 );
 
-    int  q;
-    cin >> q;
-
-    while( q-- )  {
-        Biggy  a, b;
-        cin >> a >> b;
-
-        auto [u, v] = a.divMod( b );
-        cout << u << " " << v << '\n';
-
-//        cout << a * b << '\n';
-//        cout << a + b << '\n';
-    }
+    Biggy  x( "1234567823456785557554055555555555555555555555555555555"s );
+    Biggy  sqrtx = x.isqrt();
+    cout << sqrtx << '\n';
+    cout << sqrtx * sqrtx << '\n';
+    ++sqrtx;
+    cout << sqrtx * sqrtx << '\n';
 
     return  0;
 }
