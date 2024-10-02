@@ -456,10 +456,10 @@ class  Biggy  {
         return  make_pair( Q, (*this) - Q*y );
     }
 
-    friend Biggy gcd( const Biggy &a, const Biggy &b ) {
+    static Biggy  gcd( const Biggy &a, const Biggy &b ) {
         return b.isZero() ? a : gcd( b, a %b );
     }
-    friend Biggy lcm( const Biggy &a, const Biggy &b ) {
+    static Biggy  lcm( const Biggy &a, const Biggy &b ) {
         return a/gcd( a, b )*b;
     }
 
