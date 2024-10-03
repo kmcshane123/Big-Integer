@@ -5,9 +5,9 @@
 #include <iomanip>
 
 using namespace std;
-using  i64 = int64_t;
 
 class  Biggy  {
+    using  i64 = int64_t;
     using  u64 = uint64_t;
 
   public:
@@ -295,25 +295,23 @@ pair<Biggy, Biggy>  bestApproxSqrt( Biggy n, Biggy D )  {
 }
 
 
-int  main()  {
-    ios::sync_with_stdio( 0 );
+int main()  {
     cin.tie( 0 );
+    cin.sync_with_stdio( 0 );
 
-    i64  x, y;
-    cin >> x >> y;
+    int  q;
+    cin >> q;
 
-    Biggy  M( x ), B( y ), ans( 0 );
-    i64  j = 2,  j2 = 4;
+    while( q-- )  {
+        Biggy  a, b;
+        cin >> a >> b;
 
-    for( i64 i=2 ; i<=x ; ++i )  {
-        if( i == j2 )  {  // DO NOT ADD IF PERFECT SQUARE
-            ++j;  j2 = j*j;
-            continue;
-        }
-        auto  [a, b] = bestApproxSqrt( Biggy( i ), B );
-        ans += b;
+//        auto [u, v] = divMod( a, b );
+//        cout << u << " " << v << '\n';
+
+        cout << a * b << '\n';
+//        cout << a + b << '\n';
     }
-    cout << ans << '\n';
 
-    return 0;
+    return  0;
 }
