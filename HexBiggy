@@ -230,9 +230,10 @@ class  BiggyHex
   public:
     // CONSTRUCTORS
     constexpr  BiggyHex()  { sgn = 1;  str = "0"; }
-    constexpr  BiggyHex( const BiggyHex & b )  { sgn = b.sgn;  str = b.str; }
+    constexpr  BiggyHex( const BiggyHex &b )  { sgn = b.sgn;  str = b.str; }
     constexpr  BiggyHex( const string &s, bool pre = true )  {
         str = s;
+        transform( str.begin(), str.end(), str.begin(), ::toupper );
         if( pre )   for( auto &c : str )   if( c > '9' )   c = c - 'A' + '9' + 1;
         if( str[0] == '-' )  {
             sgn = -1;
